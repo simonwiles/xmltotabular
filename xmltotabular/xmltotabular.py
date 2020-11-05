@@ -298,23 +298,19 @@ class XmlCollectionToTabular:
         xml_doc = []
         with open(filepath, "r", errors="replace") as _fh:
             for i, line in enumerate(_fh):
-                if line.startswith("<?xml "):
-                    if xml_doc and xml_doc[1].startswith(f"<!DOCTYPE {self.xml_root}"):
+                if xml_doc and line.startswith("<?xml "):
+                    if xml_doc[1].startswith(f"<!DOCTYPE {self.xml_root}"):
                         yield (filename, i - len(xml_doc), "".join(xml_doc))
                     else:
                         self.logger.debug(
-                            "Unexpected XML document at line %d in %s:\n\n%s",
+                            colored(
+                                "Unexpected XML document at line %d in %s:", "yellow"
+                            )
+                            + " %s",
                             i,
                             filename,
-                            xml_doc,
+                            xml_doc[1].strip(),
                         )
-                        if not self.continue_on_error:
-                            raise SystemExit(
-                                "Unexpected XML document at line %d in %s"
-                                " (enable debugging -v to dump doc to console)",
-                                i,
-                                filename,
-                            )
                     xml_doc = []
                 xml_doc.append(line)
 
