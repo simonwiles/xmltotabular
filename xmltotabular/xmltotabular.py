@@ -13,26 +13,29 @@ from lxml import etree
 from .utils import expand_paths, DTDResolver, colored, Pool, cpu_count
 
 
+def test_xml_root(xml_doc, xml_root):
+    if xml_doc[1].startswith(f"<!DOCTYPE {xml_root}"):
+        return True
+    return False
+
+
 def yield_xml_doc(filepath, xml_root):
     filename = filepath.resolve().name
     xml_doc = []
 
-    def is_parsable_doc(xml_doc):
-        if xml_doc[1].startswith(f"<!DOCTYPE {xml_root}"):
-            return True
-        return Exception(
-            colored(f"Unexpected XML document at line {i} in {filename}: ", "yellow")
-            + xml_doc[1].strip()
-        )
-
     with open(filepath, "r", errors="replace") as _fh:
         for i, line in enumerate(_fh):
             if xml_doc and line.startswith("<?xml "):
-                r = is_parsable_doc(xml_doc)
-                if isinstance(r, Exception):
-                    yield r
-                else:
+                if test_xml_root(xml_doc, xml_root):
                     yield (filename, i - len(xml_doc), "".join(xml_doc))
+                else:
+                    yield Exception(
+                        colored(
+                            f"Unexpected XML document at line {i} in {filename}: ",
+                            "yellow",
+                        )
+                        + xml_doc[1].strip()
+                    )
                 xml_doc = []
 
             # handle the case where documents have been concatenated without
@@ -40,14 +43,30 @@ def yield_xml_doc(filepath, xml_root):
             elif xml_doc and "<?xml " in line:
                 xml_doc.append(line[: line.find("<?xml ")])
                 line = line[line.find("<?xml ") :]
-                if is_parsable_doc(xml_doc):
+                if test_xml_root(xml_doc, xml_root):
                     yield (filename, i - len(xml_doc), "".join(xml_doc))
+                else:
+                    yield Exception(
+                        colored(
+                            f"Unexpected XML document at line {i} in {filename}: ",
+                            "yellow",
+                        )
+                        + xml_doc[1].strip()
+                    )
                 xml_doc = []
 
             xml_doc.append(line)
 
-        if is_parsable_doc(xml_doc):
+        if test_xml_root(xml_doc, xml_root):
             yield (filename, i - len(xml_doc), "".join(xml_doc))
+        else:
+            yield Exception(
+                colored(
+                    f"Unexpected XML document at line {i} in {filename}: ",
+                    "yellow",
+                )
+                + xml_doc[1].strip()
+            )
 
 
 class XmlDocToTabular:
