@@ -351,18 +351,17 @@ class XmlCollectionToTabular:
         self.continue_on_error = kwargs["continue_on_error"]
 
         self.fieldnames = self.get_fieldnames()
-        self.get_root_config()
+        self.set_root_config()
 
-    def get_root_config(self):
-        self.xml_root = self.config.get("xml_root", None)
-        if self.xml_root is None:
-            self.xml_root = next(iter(self.config.keys()))
+    def set_root_config(self):
+        if "xml_root" not in self.config:
+            self.config["xml_root"] = next(iter(self.config.keys()))
             self.logger.warning(
                 colored(
                     "<xml_root> not explicitly set in config -- assuming <%s/>",
                     "yellow",
                 ),
-                self.xml_root,
+                self.config["xml_root"],
             )
 
     def convert(self):
@@ -393,7 +392,7 @@ class XmlCollectionToTabular:
             for i, tables in enumerate(
                 pool.imap(
                     docParser.process_doc,
-                    yield_xml_doc(input_file, self.xml_root),
+                    yield_xml_doc(input_file, self.config["xml_root"]),
                     chunksize,
                 )
             ):
