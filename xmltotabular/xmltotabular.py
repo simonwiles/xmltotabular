@@ -329,8 +329,8 @@ class XmlCollectionToTabular:
                 colored(
                     "<xml_root> not explicitly set in config -- assuming <%s/>",
                     "yellow",
-                )
-                % self.xml_root
+                ),
+                self.xml_root,
             )
 
     def convert(self):
