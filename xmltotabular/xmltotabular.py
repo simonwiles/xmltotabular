@@ -13,26 +13,25 @@ from lxml import etree
 from .utils import expand_paths, DTDResolver, colored, Pool, cpu_count
 
 
-def yield_xml_doc(filepath, xml_root, logger):
+def yield_xml_doc(filepath, xml_root):
     filename = filepath.resolve().name
     xml_doc = []
 
     def is_parsable_doc(xml_doc):
         if xml_doc[1].startswith(f"<!DOCTYPE {xml_root}"):
             return True
-        else:
-            logger.debug(
-                colored("Unexpected XML document at line %d in %s:", "yellow") + " %s",
-                i,
-                filename,
-                xml_doc[1].strip(),
-            )
-        return False
+        return Exception(
+            colored(f"Unexpected XML document at line {i} in {filename}: ", "yellow")
+            + xml_doc[1].strip()
+        )
 
     with open(filepath, "r", errors="replace") as _fh:
         for i, line in enumerate(_fh):
             if xml_doc and line.startswith("<?xml "):
-                if is_parsable_doc(xml_doc):
+                r = is_parsable_doc(xml_doc)
+                if isinstance(r, Exception):
+                    yield r
+                else:
                     yield (filename, i - len(xml_doc), "".join(xml_doc))
                 xml_doc = []
 
@@ -97,6 +96,10 @@ class XmlDocToTabular:
         record[fieldname] = self.get_text(elems[0])
 
     def process_doc(self, payload):
+        if isinstance(payload, Exception):
+            self.logger.debug(payload)
+            return self.tables
+
         filename, linenum, doc = payload
 
         try:
@@ -371,7 +374,7 @@ class XmlCollectionToTabular:
             for i, tables in enumerate(
                 pool.imap(
                     docParser.process_doc,
-                    yield_xml_doc(input_file, self.xml_root, self.logger),
+                    yield_xml_doc(input_file, self.xml_root),
                     chunksize,
                 )
             ):
