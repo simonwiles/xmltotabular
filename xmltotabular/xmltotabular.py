@@ -75,11 +75,12 @@ class XmlDocToTabular:
             self.logger.debug(doc)
             self.logger.warning(
                 colored(
-                    "Unable to parse XML document ending at line %d "
-                    "(enable debugging -v to dump doc to console):\n\t%s",
+                    "Unable to parse XML document ending at line %d in file %s"
+                    " (enable debugging -v to dump doc to console):\n\t%s",
                     "red",
                 ),
                 linenum,
+                filename,
                 exc.msg,
             )
             if not self.continue_on_error:
