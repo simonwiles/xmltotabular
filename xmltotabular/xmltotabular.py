@@ -78,7 +78,7 @@ class XmlDocToTabular:
 
     def get_pk(self, tree, config):
         if "<primary_key>" in config:
-            elems = tree.findall("./" + config["<primary_key>"])
+            elems = tree.xpath("./" + config["<primary_key>"])
             assert len(elems) == 1
             return self.get_text(elems[0])
         return None
