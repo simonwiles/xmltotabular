@@ -13,14 +13,22 @@ from lxml import etree
 from .utils import expand_paths, DTDResolver, colored, Pool, cpu_count
 
 
+class WrongDoctypeException(Exception):
+    """Raise for my specific kind of exception"""
+
+
+class NoDoctypeException(Exception):
+    """Raise for my specific kind of exception"""
+
+
 def test_xml_root(doc, xml_root):
     for line in doc.split("\n"):
         if line.startswith(f"<!DOCTYPE {xml_root}"):
-            return True
+            return
         elif line.startswith("<!DOCTYPE "):
-            return line
+            raise WrongDoctypeException(line)
 
-    return False
+    raise NoDoctypeException()
 
 
 def yield_xml_doc(filepath, xml_root):
@@ -95,28 +103,25 @@ class XmlDocToTabular:
 
         filename, linenum, doc = payload
 
-        doctype_test_return = test_xml_root(doc, self.config["xml_root"])
+        try:
+            test_xml_root(doc, self.config["xml_root"])
 
-        if doctype_test_return is False:
+        except WrongDoctypeException as exc:
             self.logger.debug(
                 colored("Document at line %d in %s has no DOCTYPE?\n\n", "yellow")
                 + " %s",
                 linenum,
                 filename,
-                doc,
+                exc,
             )
             return self.tables
 
-        elif doctype_test_return is not True:
+        except NoDoctypeException:
             self.logger.debug(
-                colored(
-                    "Unexpected XML document at line %d in %s: ",
-                    "yellow",
-                )
-                + "%s",
+                colored("Unexpected XML document at line %d in %s: ", "yellow") + "%s",
                 linenum,
                 filename,
-                doctype_test_return,
+                doc,
             )
             return self.tables
 
