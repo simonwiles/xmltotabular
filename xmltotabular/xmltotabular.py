@@ -296,25 +296,29 @@ class XmlCollectionToTabular:
     def yield_xml_doc(self, filepath):
         filename = filepath.resolve().name
         xml_doc = []
+
+        def is_parsable_doc(xml_doc):
+            if xml_doc[1].startswith(f"<!DOCTYPE {self.xml_root}"):
+                return True
+            else:
+                self.logger.debug(
+                    colored("Unexpected XML document at line %d in %s:", "yellow")
+                    + " %s",
+                    i,
+                    filename,
+                    xml_doc[1].strip(),
+                )
+            return False
+
         with open(filepath, "r", errors="replace") as _fh:
             for i, line in enumerate(_fh):
                 if xml_doc and line.startswith("<?xml "):
-                    if xml_doc[1].startswith(f"<!DOCTYPE {self.xml_root}"):
+                    if is_parsable_doc(xml_doc):
                         yield (filename, i - len(xml_doc), "".join(xml_doc))
-                    else:
-                        self.logger.debug(
-                            colored(
-                                "Unexpected XML document at line %d in %s:", "yellow"
-                            )
-                            + " %s",
-                            i,
-                            filename,
-                            xml_doc[1].strip(),
-                        )
                     xml_doc = []
                 xml_doc.append(line)
 
-            if xml_doc and xml_doc[1].startswith(f"<!DOCTYPE {self.xml_root}"):
+            if is_parsable_doc(xml_doc):
                 yield (filename, i - len(xml_doc), "".join(xml_doc))
 
     def get_root_config(self):
