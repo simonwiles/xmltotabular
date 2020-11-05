@@ -14,8 +14,12 @@ from .utils import expand_paths, DTDResolver, colored, Pool, cpu_count
 
 
 def test_xml_root(doc, xml_root):
-    if doc.split("\n")[1].startswith(f"<!DOCTYPE {xml_root}"):
-        return True
+    for line in doc.split("\n"):
+        if line.startswith(f"<!DOCTYPE {xml_root}"):
+            return True
+        elif line.startswith("<!DOCTYPE "):
+            return line
+
     return False
 
 
@@ -91,7 +95,19 @@ class XmlDocToTabular:
 
         filename, linenum, doc = payload
 
-        if not test_xml_root(doc, self.config["xml_root"]):
+        doctype_test_return = test_xml_root(doc, self.config["xml_root"])
+
+        if doctype_test_return is False:
+            self.logger.debug(
+                colored("Document at line %d in %s has no DOCTYPE?\n\n", "yellow")
+                + " %s",
+                linenum,
+                filename,
+                doc,
+            )
+            return self.tables
+
+        elif doctype_test_return is not True:
             self.logger.debug(
                 colored(
                     "Unexpected XML document at line %d in %s: ",
@@ -100,7 +116,7 @@ class XmlDocToTabular:
                 + "%s",
                 linenum,
                 filename,
-                doc.split("\n")[1],
+                doctype_test_return,
             )
             return self.tables
 
