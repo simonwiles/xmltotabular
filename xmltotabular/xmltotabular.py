@@ -13,6 +13,44 @@ from lxml import etree
 from .utils import expand_paths, DTDResolver, colored, Pool, cpu_count
 
 
+def yield_xml_doc(filepath, xml_root, logger):
+    filename = filepath.resolve().name
+    xml_doc = []
+
+    def is_parsable_doc(xml_doc):
+        if xml_doc[1].startswith(f"<!DOCTYPE {xml_root}"):
+            return True
+        else:
+            logger.debug(
+                colored("Unexpected XML document at line %d in %s:", "yellow") + " %s",
+                i,
+                filename,
+                xml_doc[1].strip(),
+            )
+        return False
+
+    with open(filepath, "r", errors="replace") as _fh:
+        for i, line in enumerate(_fh):
+            if xml_doc and line.startswith("<?xml "):
+                if is_parsable_doc(xml_doc):
+                    yield (filename, i - len(xml_doc), "".join(xml_doc))
+                xml_doc = []
+
+            # handle the case where documents have been concatenated without
+            #  adequate interpolation of new-lines
+            elif xml_doc and "<?xml " in line:
+                xml_doc.append(line[: line.find("<?xml ")])
+                line = line[line.find("<?xml ") :]
+                if is_parsable_doc(xml_doc):
+                    yield (filename, i - len(xml_doc), "".join(xml_doc))
+                xml_doc = []
+
+            xml_doc.append(line)
+
+        if is_parsable_doc(xml_doc):
+            yield (filename, i - len(xml_doc), "".join(xml_doc))
+
+
 class XmlDocToTabular:
     def __init__(
         self, logger, config, dtd_path, preprocess_doc, validate, continue_on_error
@@ -293,44 +331,6 @@ class XmlCollectionToTabular:
         self.fieldnames = self.get_fieldnames()
         self.get_root_config()
 
-    def yield_xml_doc(self, filepath):
-        filename = filepath.resolve().name
-        xml_doc = []
-
-        def is_parsable_doc(xml_doc):
-            if xml_doc[1].startswith(f"<!DOCTYPE {self.xml_root}"):
-                return True
-            else:
-                self.logger.debug(
-                    colored("Unexpected XML document at line %d in %s:", "yellow")
-                    + " %s",
-                    i,
-                    filename,
-                    xml_doc[1].strip(),
-                )
-            return False
-
-        with open(filepath, "r", errors="replace") as _fh:
-            for i, line in enumerate(_fh):
-                if xml_doc and line.startswith("<?xml "):
-                    if is_parsable_doc(xml_doc):
-                        yield (filename, i - len(xml_doc), "".join(xml_doc))
-                    xml_doc = []
-
-                # handle the case where documents have been concatenated without
-                #  adequate interpolation of new-lines
-                elif xml_doc and "<?xml " in line:
-                    xml_doc.append(line[: line.find("<?xml ")])
-                    line = line[line.find("<?xml ") :]
-                    if is_parsable_doc(xml_doc):
-                        yield (filename, i - len(xml_doc), "".join(xml_doc))
-                    xml_doc = []
-
-                xml_doc.append(line)
-
-            if is_parsable_doc(xml_doc):
-                yield (filename, i - len(xml_doc), "".join(xml_doc))
-
     def get_root_config(self):
         self.xml_root = self.config.get("xml_root", None)
         if self.xml_root is None:
@@ -371,7 +371,7 @@ class XmlCollectionToTabular:
             for i, tables in enumerate(
                 pool.imap(
                     docParser.process_doc,
-                    self.yield_xml_doc(input_file),
+                    yield_xml_doc(input_file, self.xml_root, self.logger),
                     chunksize,
                 )
             ):
