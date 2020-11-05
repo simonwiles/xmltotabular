@@ -77,10 +77,21 @@ class XmlDocToTabular:
         ).strip()
 
     def get_pk(self, tree, config):
-        if "<primary_key>" in config:
-            elems = tree.xpath("./" + config["<primary_key>"])
-            assert len(elems) == 1
+        def get_pk_component(expression):
+            elems = tree.xpath(f"./{expression}")
+            assert (
+                len(elems) == 1
+            ), f"Multiple elements found for <primary_key> component {expression}"
             return self.get_text(elems[0])
+
+        if "<primary_key>" in config and isinstance(config["<primary_key>"], str):
+            return get_pk_component(config["<primary_key>"])
+
+        if "<primary_key>" in config and isinstance(config["<primary_key>"], list):
+            return "-".join(
+                get_pk_component(expression) for expression in config["<primary_key>"]
+            )
+
         return None
 
     def add_string(self, path, elems, record, fieldname):
