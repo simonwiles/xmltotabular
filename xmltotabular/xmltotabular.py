@@ -21,9 +21,9 @@ class NoDoctypeException(Exception):
     """Raise for my specific kind of exception"""
 
 
-def test_xml_root(doc, xml_root):
+def test_doctype(doc, expected_doctype):
     for line in doc.split("\n"):
-        if line.startswith(f"<!DOCTYPE {xml_root}"):
+        if line.startswith(f"<!DOCTYPE {expected_doctype}"):
             return
         elif line.startswith("<!DOCTYPE "):
             raise WrongDoctypeException(line)
@@ -104,7 +104,7 @@ class XmlDocToTabular:
         filename, linenum, doc = payload
 
         try:
-            test_xml_root(doc, self.config["xml_root"])
+            test_doctype(doc, self.config["xml_root"])
 
         except WrongDoctypeException as exc:
             self.logger.debug(
