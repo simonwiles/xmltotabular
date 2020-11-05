@@ -316,6 +316,16 @@ class XmlCollectionToTabular:
                     if is_parsable_doc(xml_doc):
                         yield (filename, i - len(xml_doc), "".join(xml_doc))
                     xml_doc = []
+
+                # handle the case where documents have been concatenated without
+                #  adequate interpolation of new-lines
+                elif xml_doc and "<?xml " in line:
+                    xml_doc.append(line[: line.find("<?xml ")])
+                    line = line[line.find("<?xml ") :]
+                    if is_parsable_doc(xml_doc):
+                        yield (filename, i - len(xml_doc), "".join(xml_doc))
+                    xml_doc = []
+
                 xml_doc.append(line)
 
             if is_parsable_doc(xml_doc):
