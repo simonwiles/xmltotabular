@@ -422,7 +422,7 @@ class XmlCollectionToTabular:
             pool.close()
             pool.join()
 
-            if tables:
+            if all_tables:
                 self.logger.info(colored("...%d records processed!", "green"), i + 1)
                 self.flush_to_disk(all_tables)
             else:
