@@ -394,7 +394,7 @@ class XmlCollectionToTabular:
 
         for input_file in self.xml_files:
 
-            self.logger.info(colored("Processing %s...", "green"), input_file.resolve())
+            self.logger.warn(colored("Processing %s...", "green"), input_file.resolve())
 
             processes = self.processes or cpu_count() - 1 or 1
             # chunk sizes greater than 1 result in duplicate returns because the results
@@ -413,7 +413,7 @@ class XmlCollectionToTabular:
             ):
 
                 if i % 100 == 0:
-                    self.logger.debug(
+                    self.logger.info(
                         colored("Processing document %d...", "cyan"), i + 1
                     )
                 for key, value in tables.items():
@@ -529,7 +529,7 @@ class XmlCollectionToTabular:
             if "id" in self.fieldnames[tablename]:
                 params["pk"] = "id"
                 params["not_null"] = {"id"}
-            self.logger.debug(
+            self.logger.info(
                 colored("Writing %d records to `%s`...", "magenta"),
                 len(rows),
                 tablename,
