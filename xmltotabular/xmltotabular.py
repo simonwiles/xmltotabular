@@ -81,7 +81,7 @@ class XmlDocToTabular:
             elems = tree.xpath(f"./{expression}")
             assert (
                 len(elems) == 1
-            ), f"Multiple elements found for <primary_key> component {expression}"
+            ), f"{len(elems)} elements found for <primary_key> component {expression}"
             return self.get_text(elems[0])
 
         if "<primary_key>" in config and isinstance(config["<primary_key>"], str):
