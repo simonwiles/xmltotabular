@@ -292,9 +292,7 @@ class XmlDocToTabular:
             if "<filename_field>" in config:
                 record[config["<filename_field>"]] = filename
             for subpath, subconfig in config["<fields>"].items():
-                self.process_path(
-                    elem, subpath, subconfig, filename, record, entity, pk
-                )
+                self.process_path(elem, subpath, subconfig, filename, record, entity, pk)
 
             self.tables[entity].append(record)
 
@@ -413,9 +411,7 @@ class XmlCollectionToTabular:
             ):
 
                 if i % 100 == 0:
-                    self.logger.info(
-                        colored("Processing document %d...", "cyan"), i + 1
-                    )
+                    self.logger.info(colored("Processing document %d...", "cyan"), i + 1)
                 for key, value in tables.items():
                     all_tables[key].extend(value)
 
