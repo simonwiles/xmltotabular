@@ -438,12 +438,10 @@ class XmlCollectionToTabular:
             self.write_sqlitedb(tables)
 
     def get_fieldnames(self):
-        """
-        On python >=3.7, dictionaries maintain key order, so fields are guaranteed to
-        be returned in the order in which they appear in the config file.  To guarantee
-        this on versions of python <3.7 (insofar as it matters), collections.OrderedDict
-        would have to be used here.
-        """
+        # On python >=3.7, dictionaries maintain key order, so fields are guaranteed to
+        #  be returned in the order in which they appear in the config file.  To
+        #  guarantee this on versions of python <3.7 (insofar as it matters),
+        #  collections.OrderedDict would have to be used here.
 
         fieldnames = defaultdict(list)
 
