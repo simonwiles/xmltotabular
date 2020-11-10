@@ -14,7 +14,7 @@ if sys.version_info < (3, 7):
             "(e.g. pip install multiprocess)."
         )
 else:
-    from multiprocessing import Pool, cpu_count
+    from multiprocessing import Pool, cpu_count  # noqa: F401
 
 
 try:
