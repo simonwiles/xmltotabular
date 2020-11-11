@@ -382,12 +382,12 @@ class XmlCollectionToTabular:
             self.logger.warning(colored("No input files to process!", "red"))
 
         docParser = XmlDocToTabular(
-            self.logger,
-            self.config,
-            self.dtd_path,
-            self.preprocess_doc,
-            self.validate,
-            self.continue_on_error,
+            logger=self.logger,
+            config=self.config,
+            dtd_path=self.dtd_path,
+            preprocess_doc=self.preprocess_doc,
+            validate=self.validate,
+            continue_on_error=self.continue_on_error,
         )
 
         for input_file in self.xml_files:
