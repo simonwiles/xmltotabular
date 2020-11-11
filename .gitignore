@@ -3,5 +3,6 @@ __pycache__
 .venv
 Pipfile.lock
 
+.pytest_cache
 .coverage
 htmlcov
