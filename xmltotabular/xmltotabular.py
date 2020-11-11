@@ -60,7 +60,7 @@ class XmlDocToTabular:
         logger,
         config,
         dtd_path=None,
-        preprocess_doc=lambda _: _,
+        preprocess_doc=None,
         validate=False,
         continue_on_error=False,
     ):
@@ -312,7 +312,7 @@ class XmlCollectionToTabular:
         output_path,
         output_type,
         logger,
-        preprocess_doc=False,
+        preprocess_doc=None,
         **kwargs,
     ):
 
