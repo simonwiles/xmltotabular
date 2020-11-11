@@ -197,7 +197,8 @@ class XmlDocToTabular:
             parser_args["dtd_validation"] = True
 
         parser = etree.XMLParser(**parser_args)
-        parser.resolvers.add(DTDResolver(self.dtd_path))
+        if self.dtd_path:
+            parser.resolvers.add(DTDResolver(self.dtd_path))
         return etree.parse(BytesIO(doc.encode("utf8")), parser)
 
     def process_path(
