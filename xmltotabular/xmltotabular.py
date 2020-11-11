@@ -56,7 +56,13 @@ def yield_xml_doc(filepath):
 
 class XmlDocToTabular:
     def __init__(
-        self, logger, config, dtd_path, preprocess_doc, validate, continue_on_error
+        self,
+        logger,
+        config,
+        dtd_path=None,
+        preprocess_doc=lambda _: _,
+        validate=False,
+        continue_on_error=False,
     ):
         self.logger = logger
         self.config = config
