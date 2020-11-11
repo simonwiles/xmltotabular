@@ -29,3 +29,8 @@ With a working version of Python >= 3.6 and Pipenv:
   ```
   $ pipenv run pre-commit run --all-files
   ```
+
+- Tests
+  ```
+  $ pipenv run pytest
+  ```
