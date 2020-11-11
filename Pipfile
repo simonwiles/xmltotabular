@@ -14,6 +14,3 @@ pre-commit = "*"
 lxml = "*"
 sqlite-utils = "*"
 termcolor = "*"
-
-[requires]
-python_version = "3.8"
