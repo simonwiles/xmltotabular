@@ -120,27 +120,29 @@ class XmlDocToTabular:
 
         filename, linenum, doc = payload
 
-        try:
-            test_doctype(doc, self.config["xml_root"])
+        if "xml_root" in self.config:
+            try:
+                test_doctype(doc, self.config["xml_root"])
 
-        except WrongDoctypeException as exc:
-            self.logger.debug(
-                colored("Unexpected XML document at line %d in %s: ", "yellow") + "%s",
-                linenum,
-                filename,
-                exc,
-            )
-            return self.tables
+            except WrongDoctypeException as exc:
+                self.logger.debug(
+                    colored("Unexpected XML document at line %d in %s: ", "yellow")
+                    + "%s",
+                    linenum,
+                    filename,
+                    exc,
+                )
+                return self.tables
 
-        except NoDoctypeException:
-            self.logger.debug(
-                colored("Document at line %d in %s has no DOCTYPE?\n\n", "yellow")
-                + " %s",
-                linenum,
-                filename,
-                doc,
-            )
-            return self.tables
+            except NoDoctypeException:
+                self.logger.debug(
+                    colored("Document at line %d in %s has no DOCTYPE?\n\n", "yellow")
+                    + " %s",
+                    linenum,
+                    filename,
+                    doc,
+                )
+                return self.tables
 
         try:
             tree = self.parse_tree(doc)
