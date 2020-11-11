@@ -31,7 +31,7 @@ def test_doctype(doc, expected_doctype):
     raise NoDoctypeException()
 
 
-def yield_xml_doc(filepath, xml_root):
+def yield_xml_doc(filepath):
     filename = filepath.resolve().name
     xml_doc = []
 
@@ -405,7 +405,7 @@ class XmlCollectionToTabular:
             for i, tables in enumerate(
                 pool.imap(
                     docParser.process_doc,
-                    yield_xml_doc(input_file, self.config["xml_root"]),
+                    yield_xml_doc(input_file),
                     chunksize,
                 )
             ):
