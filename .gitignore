@@ -2,3 +2,6 @@ __pycache__
 .vscode
 .venv
 Pipfile.lock
+
+.coverage
+htmlcov
