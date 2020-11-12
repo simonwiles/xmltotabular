@@ -2,3 +2,7 @@ __pycache__
 .vscode
 .venv
 Pipfile.lock
+
+.pytest_cache
+.coverage
+htmlcov

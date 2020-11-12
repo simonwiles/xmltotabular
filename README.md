@@ -29,3 +29,31 @@ With a working version of Python >= 3.6 and Pipenv:
   ```
   $ pipenv run pre-commit run --all-files
   ```
+
+- Tests
+
+  ```
+  $ pipenv run pytest
+  ```
+
+- Coverage
+
+  To collect coverage execution data, use:
+
+  ```
+  $ pipenv run coverage run -m pytest
+  ```
+
+  and to get a report on the data, use:
+
+  ```
+  $ pipenv run coverage report -m
+  ```
+
+  or
+
+  ```
+  $ pipenv run coverage html
+  ```
+
+  to create an HTML report in `htmlcov/`.
