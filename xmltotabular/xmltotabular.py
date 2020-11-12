@@ -14,11 +14,11 @@ from .utils import expand_paths, DTDResolver, colored, Pool, cpu_count
 
 
 class WrongDoctypeException(Exception):
-    """Raise for my specific kind of exception"""
+    """Used to indicate that an XML doc has the wrong DOCTYPE."""
 
 
 class NoDoctypeException(Exception):
-    """Raise for my specific kind of exception"""
+    """Used to indicate that an XML doc does not specify a DOCTYPE."""
 
 
 def test_doctype(doc, expected_doctype):
