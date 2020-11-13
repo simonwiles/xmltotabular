@@ -128,9 +128,18 @@ class XmlDocToTabular:
         # we've only one elem, and it's a simple mapping to a fieldname
         record[fieldname] = self.get_text(elems[0])
 
-    def process_doc(self, payload):
+    def process_doc_from_pool(self, payload):
+        """Unpack a tuple returned by yield_xml_doc().
 
-        filename, linenum, doc = payload
+        This is necessary because multiprocessing.Pool.imap will only pass a single
+        argument to child processes. Pool.starmap would be great, but there's no version
+        that works with iterables, which is really needed here. Pathos' multiprocess can
+        handle this (and is required by this library when using python 3.6 anyway) --
+        there may be value in using this anyway.
+        """
+        return self.process_doc(**payload)
+
+    def process_doc(self, doc, filename=None, linenum=None):
 
         if "xml_root" in self.config:
             try:
@@ -425,7 +434,7 @@ class XmlCollectionToTabular:
             all_tables = defaultdict(list)
             for i, tables in enumerate(
                 pool.imap(
-                    docParser.process_doc,
+                    docParser.process_doc_from_pool,
                     yield_xml_doc(input_file),
                     chunksize,
                 )
