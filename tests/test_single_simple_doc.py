@@ -1,11 +1,7 @@
-import logging
-
 from xmltotabular import XmlDocToTabular
 
-logger = logging.getLogger("test")
 
-
-def test_simple_transform(simple_config):
+def test_simple_transform(simple_config, debug_logger):
     xml = """\
 <?xml version="1.0" encoding="UTF-8"?>
 <album>
@@ -17,7 +13,7 @@ def test_simple_transform(simple_config):
 </album>
     """
 
-    docTransformer = XmlDocToTabular(logger, simple_config)
+    docTransformer = XmlDocToTabular(simple_config, logger=debug_logger)
 
     assert docTransformer.process_doc(xml) == {
         "album": [

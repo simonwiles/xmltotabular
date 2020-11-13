@@ -1,3 +1,5 @@
+import logging
+
 import pytest
 import yaml
 
@@ -15,3 +17,11 @@ def simple_config():
         genre: genre
     """
     return yaml.safe_load(config)
+
+
+@pytest.fixture
+def debug_logger():
+    logger = logging.getLogger("test")
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(logging.StreamHandler())
+    return logger
