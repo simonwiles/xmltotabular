@@ -1,4 +1,5 @@
 import csv
+import logging
 import sqlite3
 from collections import defaultdict
 from pathlib import Path
@@ -18,12 +19,14 @@ class XmlCollectionToTabular:
         dtd_path,
         output_path,
         output_type,
-        logger,
+        log_level=logging.INFO,
         preprocess_doc=None,
         **kwargs,
     ):
 
-        self.logger = logger
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(log_level)
+        self.logger.addHandler(logging.StreamHandler())
 
         self.xml_files = []
         for input_path in xml_input:
@@ -65,7 +68,9 @@ class XmlCollectionToTabular:
                 self.db = SqliteDB(db_conn)
 
             except ImportError:
-                logger.debug("sqlite_utils (pip3 install sqlite-utils) not available")
+                self.logger.debug(
+                    "sqlite_utils (pip3 install sqlite-utils) not available"
+                )
                 raise
 
         self.config = yaml.safe_load(open(config))
