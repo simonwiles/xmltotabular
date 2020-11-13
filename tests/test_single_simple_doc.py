@@ -6,16 +6,16 @@ logger = logging.getLogger("test")
 
 
 def test_simple_transform(simple_config):
-    xml = """
-    <?xml version="1.0" encoding="UTF-8"?>
-    <album>
-      <name>Five Leaves Left</name>
-      <artist>Nick Drake</artist>
-      <released>1969</released>
-      <label>Island</label>
-      <genre>Folk</genre>
-    </album>
-    """.strip()
+    xml = """\
+<?xml version="1.0" encoding="UTF-8"?>
+<album>
+  <name>Five Leaves Left</name>
+  <artist>Nick Drake</artist>
+  <released>1969</released>
+  <label>Island</label>
+  <genre>Folk</genre>
+</album>
+    """
 
     docTransformer = XmlDocToTabular(logger, simple_config)
 
