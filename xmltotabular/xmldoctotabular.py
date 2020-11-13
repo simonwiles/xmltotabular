@@ -25,12 +25,16 @@ class XmlDocToTabular:
         preprocess_doc=None,
         validate=False,
         continue_on_error=False,
+        log_level=None,
     ):
         if logger:
             self.logger = logger
         else:
             self.logger = logging.getLogger(__name__)
             self.logger.addHandler(logging.StreamHandler())
+
+        if log_level:
+            self.logger.setLevel(log_level)
 
         self.config = config
         self.dtd_path = dtd_path
