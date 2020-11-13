@@ -1,3 +1,4 @@
+import logging
 import re
 from collections import defaultdict
 from functools import partial
@@ -18,14 +19,19 @@ from .utils import (
 class XmlDocToTabular:
     def __init__(
         self,
-        logger,
         config,
+        logger=None,
         dtd_path=None,
         preprocess_doc=None,
         validate=False,
         continue_on_error=False,
     ):
-        self.logger = logger
+        if logger:
+            self.logger = logger
+        else:
+            self.logger = logging.getLogger(__name__)
+            self.logger.addHandler(logging.StreamHandler())
+
         self.config = config
         self.dtd_path = dtd_path
         self.preprocess_doc = preprocess_doc
