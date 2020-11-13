@@ -135,17 +135,18 @@ class XmlDocToTabular:
                 raise SystemExit()
 
         except etree.XMLSyntaxError as exc:
-            self.logger.debug(doc)
             self.logger.warning(
                 colored(
-                    "Unable to parse XML document ending at line %d in file %s"
-                    " (enable debugging -v to dump doc to console):\n\t%s",
+                    "Unable to parse XML document"
+                    + (f" ending at line {linenum}" if linenum else "")
+                    + (f" in file {filename}" if filename else "")
+                    + " (enable debug logging to dump doc to console):",
                     "red",
-                ),
-                linenum,
-                filename,
-                exc.msg,
+                )
+                + colored(f"\n    {exc.msg}", "yellow")
             )
+            self.logger.debug(doc)
+
             if not self.continue_on_error:
                 raise SystemExit()
 
