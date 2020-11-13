@@ -38,7 +38,11 @@ def yield_xml_doc(filepath):
     with open(filepath, "r", errors="replace") as _fh:
         for i, line in enumerate(_fh):
             if xml_doc and line.startswith("<?xml "):
-                yield (filename, i - len(xml_doc), "".join(xml_doc))
+                yield {
+                    "filename": filename,
+                    "linenum": i - len(xml_doc),
+                    "doc": "".join(xml_doc),
+                }
                 xml_doc = []
 
             # handle the case where documents have been concatenated without
@@ -46,12 +50,20 @@ def yield_xml_doc(filepath):
             elif xml_doc and "<?xml " in line:
                 xml_doc.append(line[: line.find("<?xml ")])
                 line = line[line.find("<?xml ") :]
-                yield (filename, i - len(xml_doc), "".join(xml_doc))
+                yield {
+                    "filename": filename,
+                    "linenum": i - len(xml_doc),
+                    "doc": "".join(xml_doc),
+                }
                 xml_doc = []
 
             xml_doc.append(line)
 
-        yield (filename, i - len(xml_doc), "".join(xml_doc))
+        yield {
+            "filename": filename,
+            "linenum": i - len(xml_doc),
+            "doc": "".join(xml_doc),
+        }
 
 
 class XmlDocToTabular:
