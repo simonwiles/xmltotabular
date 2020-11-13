@@ -34,7 +34,7 @@ def test_simple_transform():
 
     docTransformer = XmlDocToTabular(logger, config)
 
-    assert docTransformer.process_doc(("", 0, xml)) == {
+    assert docTransformer.process_doc(xml) == {
         "album": [
             {
                 "id": "None_0",
