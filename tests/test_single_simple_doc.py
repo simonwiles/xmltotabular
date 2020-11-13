@@ -1,13 +1,11 @@
 import logging
 
-import yaml
-
 from xmltotabular import XmlDocToTabular
 
 logger = logging.getLogger("test")
 
 
-def test_simple_transform():
+def test_simple_transform(simple_config):
     xml = """
     <?xml version="1.0" encoding="UTF-8"?>
     <album>
@@ -19,20 +17,7 @@ def test_simple_transform():
     </album>
     """.strip()
 
-    config_yaml = """
-    album:
-      <entity>: album
-      <fields>:
-        name: name
-        artist: artist
-        released: released
-        label: label
-        genre: genre
-    """
-
-    config = yaml.safe_load(config_yaml)
-
-    docTransformer = XmlDocToTabular(logger, config)
+    docTransformer = XmlDocToTabular(logger, simple_config)
 
     assert docTransformer.process_doc(xml) == {
         "album": [
