@@ -45,3 +45,56 @@ class DTDResolver(etree.Resolver):
             return self.resolve_filename(
                 str((self.dtd_path / system_url).resolve()), context
             )
+
+
+class WrongDoctypeException(Exception):
+    """Used to indicate that an XML doc has the wrong DOCTYPE."""
+
+
+class NoDoctypeException(Exception):
+    """Used to indicate that an XML doc does not specify a DOCTYPE."""
+
+
+def test_doctype(doc, expected_doctype):
+    for line in doc.split("\n"):
+        if line.startswith(f"<!DOCTYPE {expected_doctype}"):
+            return
+        elif line.startswith("<!DOCTYPE "):
+            raise WrongDoctypeException(line)
+
+    raise NoDoctypeException()
+
+
+def yield_xml_doc(filepath):
+    filename = filepath.resolve().name
+    xml_doc = []
+
+    with open(filepath, "r", errors="replace") as _fh:
+        for i, line in enumerate(_fh):
+            if xml_doc and line.startswith("<?xml "):
+                yield {
+                    "filename": filename,
+                    "linenum": i - len(xml_doc),
+                    "doc": "".join(xml_doc),
+                }
+                xml_doc = []
+
+            # handle the case where documents have been concatenated without
+            #  adequate interpolation of new-lines
+            elif xml_doc and "<?xml " in line:
+                xml_doc.append(line[: line.find("<?xml ")])
+                line = line[line.find("<?xml ") :]
+                yield {
+                    "filename": filename,
+                    "linenum": i - len(xml_doc),
+                    "doc": "".join(xml_doc),
+                }
+                xml_doc = []
+
+            xml_doc.append(line)
+
+        yield {
+            "filename": filename,
+            "linenum": i - len(xml_doc),
+            "doc": "".join(xml_doc),
+        }
