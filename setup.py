@@ -12,6 +12,7 @@ setup(
     long_description_content_type="text/markdown",
     version=VERSION,
     author="Simon Wiles",
+    author_email="simonjwiles@gmail.com",
     url="https://github.com/simonwiles/xmltotabular",
     packages=find_packages(),
     classifiers=[
