@@ -1,3 +1,4 @@
+import logging
 import re
 from collections import defaultdict
 from functools import partial
@@ -18,14 +19,23 @@ from .utils import (
 class XmlDocToTabular:
     def __init__(
         self,
-        logger,
         config,
+        logger=None,
         dtd_path=None,
         preprocess_doc=None,
         validate=False,
         continue_on_error=False,
+        log_level=None,
     ):
-        self.logger = logger
+        if logger:
+            self.logger = logger
+        else:
+            self.logger = logging.getLogger(__name__)
+            self.logger.addHandler(logging.StreamHandler())
+
+        if log_level:
+            self.logger.setLevel(log_level)
+
         self.config = config
         self.dtd_path = dtd_path
         self.preprocess_doc = preprocess_doc
@@ -96,21 +106,27 @@ class XmlDocToTabular:
 
             except WrongDoctypeException as exc:
                 self.logger.debug(
-                    colored("Unexpected XML document at line %d in %s: ", "yellow")
-                    + "%s",
-                    linenum,
-                    filename,
-                    exc,
+                    colored(
+                        "Unexpected XML document"
+                        + (f" ending at line {linenum}" if linenum else "")
+                        + (f" in file {filename}" if filename else "")
+                        + ": ",
+                        "yellow",
+                    )
+                    + exc
                 )
                 return self.tables
 
             except NoDoctypeException:
                 self.logger.debug(
-                    colored("Document at line %d in %s has no DOCTYPE?\n\n", "yellow")
-                    + " %s",
-                    linenum,
-                    filename,
-                    doc,
+                    colored(
+                        "Document"
+                        + (f" ending at line {linenum}" if linenum else "")
+                        + (f" in file {filename}" if filename else "")
+                        + " has no DOCTYPE:",
+                        "yellow",
+                    )
+                    + doc
                 )
                 return self.tables
 
@@ -125,29 +141,37 @@ class XmlDocToTabular:
                 raise SystemExit()
 
         except etree.XMLSyntaxError as exc:
-            self.logger.debug(doc)
             self.logger.warning(
                 colored(
-                    "Unable to parse XML document ending at line %d in file %s"
-                    " (enable debugging -v to dump doc to console):\n\t%s",
+                    "Unable to parse XML document"
+                    + (f" ending at line {linenum}" if linenum else "")
+                    + (f" in file {filename}" if filename else "")
+                    + " (enable debug logging to dump doc to console):",
                     "red",
-                ),
-                linenum,
-                filename,
-                exc.msg,
+                )
+                + colored(f"\n    {exc.msg}", "yellow")
             )
+            self.logger.debug(doc)
+
             if not self.continue_on_error:
                 raise SystemExit()
 
         except AssertionError as exc:
-            self.logger.debug(doc)
             pk = self.get_pk(self.parse_tree(doc), next(iter(self.config.values())))
             self.logger.warning(
-                colored("Record ID %s @%d: (record has not been parsed)", "red"),
-                pk,
-                linenum,
+                colored(
+                    "Unable to parse document"
+                    + (f" with ID {pk}" if pk else "")
+                    + (f" ending at line {linenum}" if linenum else "")
+                    + (f" in file {filename}" if filename else "")
+                    + " -- record has not been parsed"
+                    + " (enable debug logging to dump doc to console):",
+                    "red",
+                )
+                + colored(f"\n    {exc.msg}", "yellow")
             )
-            self.logger.warning(exc.msg)
+            self.logger.debug(doc)
+
             if not self.continue_on_error:
                 raise SystemExit()
 

@@ -1,12 +1,12 @@
+import logging
+
 import pytest
 import yaml
 
 
 @pytest.fixture
 def simple_config():
-
-    return yaml.safe_load(
-        """
+    config = """
     album:
       <entity>: album
       <fields>:
@@ -16,4 +16,12 @@ def simple_config():
         label: label
         genre: genre
     """
-    )
+    return yaml.safe_load(config)
+
+
+@pytest.fixture
+def debug_logger():
+    logger = logging.getLogger("test")
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(logging.StreamHandler())
+    return logger
