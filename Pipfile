@@ -11,6 +11,9 @@ flake8-bugbear = "*"
 flake8-fixme = "*"
 pre-commit = "*"
 pytest = "*"
+twine = "*"
+setuptools = "*"
+wheel = "*"
 
 [packages]
 lxml = "*"
