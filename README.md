@@ -1,7 +1,7 @@
 # xmltotabular
 
 [![PyPI](https://img.shields.io/pypi/v/xmltotabular.svg)](https://pypi.org/project/xmltotabular/)
-[![License](https://img.shields.io/github/license/simonwiles/xmltotabular)](https://github.com/simonw/sqlite-utils/blob/main/LICENSE)
+[![License](https://img.shields.io/github/license/simonwiles/xmltotabular)](https://github.com/simonwiles/xmltotabular/blob/main/LICENSE)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 Python library for converting XML to tabular data.
