@@ -106,27 +106,29 @@ class XmlDocToTabular:
 
             except WrongDoctypeException as exc:
                 self.logger.debug(
+                    "%s%s",
                     colored(
                         "Unexpected XML document"
                         + (f" ending at line {linenum}" if linenum else "")
                         + (f" in file {filename}" if filename else "")
                         + ": ",
                         "yellow",
-                    )
-                    + exc
+                    ),
+                    str(exc),
                 )
                 return self.tables
 
             except NoDoctypeException:
                 self.logger.debug(
+                    "%s%s",
                     colored(
                         "Document"
                         + (f" ending at line {linenum}" if linenum else "")
                         + (f" in file {filename}" if filename else "")
                         + " has no DOCTYPE:",
                         "yellow",
-                    )
-                    + doc
+                    ),
+                    doc,
                 )
                 return self.tables
 

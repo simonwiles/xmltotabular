@@ -213,15 +213,19 @@ class XmlCollectionToTabular:
     def write_csv_files(self, tables):
 
         self.logger.info(
-            colored("Writing csv files to %s ...", "green"), self.output_path.resolve()
+            "%s",
+            colored(f"Writing csv files to {self.output_path.resolve()} ...", "green"),
         )
         for tablename, rows in tables.items():
             output_file = self.output_path / f"{tablename}.csv"
 
             if output_file.exists():
                 self.logger.debug(
-                    colored("CSV file %s exists; records will be appended.", "yellow"),
-                    output_file,
+                    "%s",
+                    colored(
+                        f"CSV file {output_file} exists; records will be appended.",
+                        "yellow",
+                    ),
                 )
 
                 with output_file.open("a") as _fh:
