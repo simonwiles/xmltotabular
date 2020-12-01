@@ -16,12 +16,14 @@ if sys.version_info < (3, 7):
 else:
     from multiprocessing import Pool, cpu_count  # noqa: F401
 
+if sys.stdout.isatty():
+    try:
+        from termcolor import colored
+    except ImportError:
+        pass
+else:
 
-try:
-    from termcolor import colored
-except ImportError:
-
-    def colored(text, _color):
+    def colored(text, *args, **kwargs):
         """ Dummy function in case termcolor is not available. """
         return text
 
