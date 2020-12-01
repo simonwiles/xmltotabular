@@ -1,6 +1,7 @@
 import csv
 import logging
 import sqlite3
+import sys
 from collections import defaultdict
 from pathlib import Path
 from pprint import pformat
@@ -26,7 +27,7 @@ class XmlCollectionToTabular:
 
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(log_level)
-        self.logger.addHandler(logging.StreamHandler())
+        self.logger.addHandler(logging.StreamHandler(sys.stdout))
 
         self.xml_files = []
         for input_path in xml_input:
