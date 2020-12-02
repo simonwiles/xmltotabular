@@ -265,7 +265,14 @@ class XmlDocToTabular:
         if isinstance(config, list):
             for subconfig in config:
                 self.process_field(
-                    elems, tree, path, subconfig, filename, record, parent_entity
+                    elems,
+                    tree,
+                    path,
+                    subconfig,
+                    filename,
+                    record,
+                    parent_entity,
+                    parent_pk,
                 )
             return
 
