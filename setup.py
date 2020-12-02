@@ -15,6 +15,13 @@ setup(
     author_email="simonjwiles@gmail.com",
     url="https://github.com/simonwiles/xmltotabular",
     packages=find_packages(),
+    install_requires=[
+        "lxml",
+        "pyyaml",
+        "termcolor",
+        "sqlite_utils",
+        "multiprocess ; python_version < '3.7'",
+    ],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
