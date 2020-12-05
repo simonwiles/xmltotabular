@@ -47,34 +47,11 @@ class XmlCollectionToTabular:
         self.output_path = Path(output_path)
         self.output_path.mkdir(parents=True, exist_ok=True)
 
-        self.output_type = output_type
-
-        if self.output_type == "sqlite":
-            try:
-                from sqlite_utils import Database as SqliteDB  # noqa
-
-                self.db_path = (self.output_path / "db.sqlite").resolve()
-                if self.db_path.exists():
-                    self.logger.warning(
-                        colored(
-                            "Sqlite database %s exists; records will be appended.",
-                            "yellow",
-                        ),
-                        self.db_path,
-                    )
-
-                db_conn = sqlite3.connect(str(self.db_path), isolation_level=None)
-                db_conn.execute("pragma synchronous=off;")
-                db_conn.execute("pragma journal_mode=memory;")
-                self.db = SqliteDB(db_conn)
-
-            except ImportError:
-                self.logger.debug(
-                    "sqlite_utils (pip3 install sqlite-utils) not available"
-                )
-                raise
-
         self.config = yaml.safe_load(open(config))
+
+        self.output_type = output_type
+        if self.output_type == "sqlite":
+            self.init_sqlite_db()
 
         self.dtd_path = dtd_path
         self.preprocess_doc = preprocess_doc
@@ -95,6 +72,29 @@ class XmlCollectionToTabular:
                 ),
                 self.config["xml_root"],
             )
+
+    def init_sqlite_db(self):
+        try:
+            from sqlite_utils import Database as SqliteDB  # noqa
+
+        except ImportError:
+            self.logger.debug("sqlite_utils (pip3 install sqlite-utils) not available")
+            raise
+
+        self.db_path = (self.output_path / "db.sqlite").resolve()
+        if self.db_path.exists():
+            self.logger.warning(
+                colored(
+                    "Sqlite database %s exists; records will be appended.",
+                    "yellow",
+                ),
+                self.db_path,
+            )
+
+        db_conn = sqlite3.connect(str(self.db_path), isolation_level=None)
+        db_conn.execute("pragma synchronous=off;")
+        db_conn.execute("pragma journal_mode=memory;")
+        self.db = SqliteDB(db_conn)
 
     def convert(self):
         if not self.xml_files:
@@ -242,13 +242,9 @@ class XmlCollectionToTabular:
         self.logger.info(colored("Writing records to %s ...", "green"), self.db_path)
         self.db.conn.execute("begin exclusive;")
         for tablename, rows in tables.items():
-            params = {"column_order": self.fieldnames[tablename], "alter": True}
-            if "id" in self.fieldnames[tablename]:
-                params["pk"] = "id"
-                params["not_null"] = {"id"}
             self.logger.info(
                 colored("Writing %d records to `%s`...", "magenta"),
                 len(rows),
                 tablename,
             )
-            self.db[tablename].insert_all(rows, **params)
+            self.db[tablename].insert_all(rows)
