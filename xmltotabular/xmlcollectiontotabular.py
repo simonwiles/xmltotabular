@@ -97,6 +97,11 @@ class XmlCollectionToTabular:
         self.db = SqliteDB(db_conn)
 
         for tablename, fieldnames in self.get_fieldnames().items():
+            if tablename in self.db.table_names():
+                for fieldname in fieldnames:
+                    if fieldname not in self.db[tablename].columns_dict:
+                        self.db[tablename].add_column(fieldname, str)
+                continue
             params = {"column_order": fieldnames}
             if "id" in fieldnames:
                 params["pk"] = "id"
