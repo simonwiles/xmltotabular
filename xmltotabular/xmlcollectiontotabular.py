@@ -96,6 +96,14 @@ class XmlCollectionToTabular:
         db_conn.execute("pragma journal_mode=memory;")
         self.db = SqliteDB(db_conn)
 
+        for tablename, fieldnames in self.get_fieldnames().items():
+            params = {"column_order": fieldnames}
+            if "id" in fieldnames:
+                params["pk"] = "id"
+            self.db[tablename].create(
+                {fieldname: str for fieldname in fieldnames}, **params
+            )
+
     def convert(self):
         if not self.xml_files:
             self.logger.warning(colored("No input files to process!", "red"))
