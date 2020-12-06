@@ -30,6 +30,8 @@ class XmlCollectionToTabular:
         self.logger.addHandler(logging.StreamHandler(sys.stdout))
 
         self.xml_files = []
+        if isinstance(xml_input, str):
+            xml_input = [xml_input]
         for input_path in xml_input:
             for path in expand_paths(input_path):
                 if path.is_file():
