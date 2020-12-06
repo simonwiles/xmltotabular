@@ -170,6 +170,9 @@ class XmlCollectionToTabular:
                     colored("No records found! (config file error?)", "red")
                 )
 
+        if self.output_type == "sqlite" and self.output_path == ":memory:":
+            return self.db
+
     def flush_to_disk(self, tables):
         if self.output_type == "csv":
             self.write_csv_files(tables)
