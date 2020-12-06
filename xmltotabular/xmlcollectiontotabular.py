@@ -42,7 +42,9 @@ class XmlCollectionToTabular:
                     self.logger.fatal("specified input is invalid")
                     exit(1)
 
-        self.config = yaml.safe_load(open(config))
+        self.config = config
+        if isinstance(config, str) and Path(config).is_file():
+            self.config = yaml.safe_load(open(config))
 
         self.output_type = output_type
         if self.output_type == "sqlite":
