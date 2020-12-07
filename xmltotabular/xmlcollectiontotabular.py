@@ -93,7 +93,7 @@ class XmlCollectionToTabular:
             self.output_path = Path(output_path).resolve()
 
             if self.output_path.is_dir():
-                self.output_path = (output_path / "db.sqlite").resolve()
+                self.output_path = (self.output_path / "db.sqlite").resolve()
 
             if self.output_path.exists():
                 self.logger.warning(
