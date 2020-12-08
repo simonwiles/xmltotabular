@@ -95,6 +95,9 @@ class XmlCollectionToTabular:
             if self.output_path.is_dir():
                 self.output_path = (self.output_path / "db.sqlite").resolve()
 
+            if self.output_path.suffix != "sqlite":
+                self.output_path = self.output_path.with_suffix(".sqlite")
+
             if self.output_path.exists():
                 self.logger.warning(
                     colored(
@@ -104,7 +107,7 @@ class XmlCollectionToTabular:
                     self.output_path,
                 )
             else:
-                self.output_path.mkdir(parents=True, exist_ok=True)
+                self.output_path.parent.mkdir(parents=True, exist_ok=True)
 
             db_conn = sqlite3.connect(str(self.output_path), isolation_level=None)
 
