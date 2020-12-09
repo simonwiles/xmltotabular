@@ -17,11 +17,11 @@ class XmlCollectionToTabular:
         self,
         xml_input,
         config,
-        dtd_path,
         output_path,
-        output_type,
-        log_level=logging.INFO,
+        output_type="sqlite",
+        dtd_path=None,
         preprocess_doc=None,
+        log_level=logging.INFO,
         **kwargs,
     ):
 
