@@ -31,6 +31,8 @@ else:
 def expand_paths(path_expr):
 
     path = Path(path_expr).expanduser()
+    if path.is_file():
+        return [path]
     return Path(path.root).glob(
         str(Path("").joinpath(*path.parts[1:] if path.is_absolute() else path.parts))
     )

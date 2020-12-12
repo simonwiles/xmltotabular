@@ -17,11 +17,11 @@ class XmlCollectionToTabular:
         self,
         xml_input,
         config,
-        dtd_path,
         output_path,
-        output_type,
-        log_level=logging.INFO,
+        output_type="sqlite",
+        dtd_path=None,
         preprocess_doc=None,
+        log_level=logging.INFO,
         **kwargs,
     ):
 
@@ -30,6 +30,8 @@ class XmlCollectionToTabular:
         self.logger.addHandler(logging.StreamHandler(sys.stdout))
 
         self.xml_files = []
+        if isinstance(xml_input, str):
+            xml_input = [xml_input]
         for input_path in xml_input:
             for path in expand_paths(input_path):
                 if path.is_file():
@@ -42,16 +44,17 @@ class XmlCollectionToTabular:
                     self.logger.fatal("specified input is invalid")
                     exit(1)
 
-        # do this now, because we don't want to process all that data and then find
-        #  the output_path is invalid... :)
-        self.output_path = Path(output_path)
-        self.output_path.mkdir(parents=True, exist_ok=True)
-
-        self.config = yaml.safe_load(open(config))
+        self.config = config
+        if isinstance(config, str) and Path(config).is_file():
+            self.config = yaml.safe_load(open(config))
 
         self.output_type = output_type
         if self.output_type == "sqlite":
-            self.init_sqlite_db()
+            self.init_sqlite_db(output_path)
+
+        if self.output_type == "csv":
+            self.output_path = Path(output_path)
+            self.output_path.mkdir(parents=True, exist_ok=True)
 
         self.dtd_path = dtd_path
         self.preprocess_doc = preprocess_doc
@@ -73,7 +76,7 @@ class XmlCollectionToTabular:
                 self.config["xml_root"],
             )
 
-    def init_sqlite_db(self):
+    def init_sqlite_db(self, output_path):
         try:
             from sqlite_utils import Database as SqliteDB  # noqa
 
@@ -81,17 +84,33 @@ class XmlCollectionToTabular:
             self.logger.debug("sqlite_utils (pip3 install sqlite-utils) not available")
             raise
 
-        self.db_path = (self.output_path / "db.sqlite").resolve()
-        if self.db_path.exists():
-            self.logger.warning(
-                colored(
-                    "Sqlite database %s exists; records will be appended.",
-                    "yellow",
-                ),
-                self.db_path,
-            )
+        if output_path == ":memory:":
+            self.output_path = output_path
+            db_conn = sqlite3.connect(":memory:")
 
-        db_conn = sqlite3.connect(str(self.db_path), isolation_level=None)
+        else:
+
+            self.output_path = Path(output_path).resolve()
+
+            if self.output_path.is_dir():
+                self.output_path = (self.output_path / "db.sqlite").resolve()
+
+            if self.output_path.suffix != "sqlite":
+                self.output_path = self.output_path.with_suffix(".sqlite")
+
+            if self.output_path.exists():
+                self.logger.warning(
+                    colored(
+                        "Sqlite database %s exists; records will be appended.",
+                        "yellow",
+                    ),
+                    self.output_path,
+                )
+            else:
+                self.output_path.parent.mkdir(parents=True, exist_ok=True)
+
+            db_conn = sqlite3.connect(str(self.output_path), isolation_level=None)
+
         db_conn.execute("pragma synchronous=off;")
         db_conn.execute("pragma journal_mode=memory;")
         self.db = SqliteDB(db_conn)
@@ -157,6 +176,9 @@ class XmlCollectionToTabular:
                 self.logger.warning(
                     colored("No records found! (config file error?)", "red")
                 )
+
+        if self.output_type == "sqlite" and self.output_path == ":memory:":
+            return self.db
 
     def flush_to_disk(self, tables):
         if self.output_type == "csv":
@@ -252,7 +274,7 @@ class XmlCollectionToTabular:
                     writer.writerows(rows)
 
     def write_sqlitedb(self, tables):
-        self.logger.info(colored("Writing records to %s ...", "green"), self.db_path)
+        self.logger.info(colored("Writing records to %s ...", "green"), self.output_path)
         self.db.conn.execute("begin exclusive;")
         for tablename, rows in tables.items():
             self.logger.info(
