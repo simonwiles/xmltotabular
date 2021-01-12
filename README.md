@@ -7,6 +7,10 @@
 
 Python library for converting XML to tabular data.
 
+## Current Status
+
+This library is under periodic development. It is useful as it stands (see [sul-cidr/patent_data_extractor](https://github.com/sul-cidr/patent_data_extractor) for the _de facto_ reference implementation), but there is still much to be done before a `1.0` release. Please get in touch if this project could be useful to you, and especially if you'd be interesting in contributing (I would welcome help with documentation and examples for a robust test suite, for example).
+
 ## Development
 
 With a working version of Python >= 3.6 and Pipenv:
