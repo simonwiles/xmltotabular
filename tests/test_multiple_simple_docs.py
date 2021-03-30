@@ -1,22 +1,24 @@
-import logging
-
 from xmltotabular import XmlCollectionToTabular
-
-logger = logging.getLogger("test")
 
 
 def test_simple_transform(simple_config):
 
-    xml_path = "test_xml/multiple_simple_docs.xml"
+    xml_path = "tests/test_xml/multiple_simple_docs.xml"
 
     collectionTransformer = XmlCollectionToTabular(
         xml_path,
         simple_config,
-        logger,
+        None,
+        ":memory:",
+        "sqlite",
+        validate=False,
+        processes=1,
+        continue_on_error=False,
     )
 
-    assert collectionTransformer.convert()
+    db = collectionTransformer.convert()
 
+    print(db)
     expected = {  # noqa
         "album": [
             {
@@ -29,3 +31,5 @@ def test_simple_transform(simple_config):
             }
         ]
     }
+
+    assert False  # noqa
