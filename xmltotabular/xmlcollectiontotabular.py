@@ -62,7 +62,7 @@ class XmlCollectionToTabular:
         self.processes = kwargs["processes"]
         self.continue_on_error = kwargs["continue_on_error"]
 
-        self.fieldnames = self.get_fieldnames()
+        self.fieldnames = self.get_fieldnames(self.config)
         self.set_root_config()
 
     def set_root_config(self):
@@ -115,7 +115,7 @@ class XmlCollectionToTabular:
         db_conn.execute("pragma journal_mode=memory;")
         self.db = SqliteDB(db_conn)
 
-        for tablename, fieldnames in self.get_fieldnames().items():
+        for tablename, fieldnames in self.get_fieldnames(self.config).items():
             if tablename in self.db.table_names():
                 for fieldname in fieldnames:
                     if fieldname not in self.db[tablename].columns_dict:
@@ -187,7 +187,8 @@ class XmlCollectionToTabular:
         if self.output_type == "sqlite":
             self.write_sqlitedb(tables)
 
-    def get_fieldnames(self):
+    @staticmethod
+    def get_fieldnames(full_config):
         # On python >=3.7, dictionaries maintain key order, so fields are guaranteed to
         #  be returned in the order in which they appear in the config file.  To
         #  guarantee this on versions of python <3.7 (insofar as it matters),
@@ -237,7 +238,7 @@ class XmlCollectionToTabular:
                 + "\n ".join(pformat(config).split("\n"))
             )
 
-        for key, config in self.config.items():
+        for key, config in full_config.items():
             if key.startswith("<"):
                 # skip keyword instructions
                 continue
