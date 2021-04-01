@@ -133,7 +133,7 @@ class Table:
         self.name = name
 
     @property
-    def columns(self):
+    def column_names(self):
         if not self.exists():
             return []
         rows = self.db.execute("PRAGMA table_info([{}])".format(self.name)).fetchall()

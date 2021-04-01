@@ -79,9 +79,8 @@ def test_table_creation_additional_fields(simple_config, debug_logger):
     for tablename, fieldnames in additional_fields.items():
         if tablename in db.table_names():
             for fieldname in fieldnames:
-                if fieldname not in db[tablename].columns:
+                if fieldname not in db[tablename].column_names:
                     db[tablename].add_column(fieldname, str)
-            continue
 
     print(f"{db['album'].schema=}")
 
