@@ -155,7 +155,6 @@ class Table:
         column_order=None,
         not_null=None,
     ):
-        columns = {name: value for (name, value) in columns.items()}
         with self.db.conn:
             self.db.create_table(
                 self.name,
