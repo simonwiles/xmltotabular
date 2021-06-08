@@ -1,3 +1,4 @@
+import itertools
 import sqlite3
 from collections import namedtuple
 from pathlib import Path
@@ -174,6 +175,38 @@ class Table:
         self.db.execute(sql)
 
         return self
+
+    def insert_sql(self, records):
+        values = []
+        for record in records:
+            record_values = []
+            for key in self.column_names:
+                value = record.get(key, None)
+                record_values.append(value)
+            values.append(record_values)
+
+        queries_and_params = []
+
+        sql = """
+            INSERT INTO [{table}] ({columns}) VALUES {rows};
+        """.strip().format(
+            table=self.name,
+            columns=", ".join("[{}]".format(c) for c in self.column_names),
+            rows=", ".join(
+                "({placeholders})".format(
+                    placeholders=", ".join("?" for col in self.column_names)
+                )
+                for record in records
+            ),
+        )
+        flat_values = list(itertools.chain(*values))
+        queries_and_params = (sql, flat_values)
+
+        return queries_and_params
+
+    def insert_all(self, records):
+        query, params = self.insert_sql(records)
+        self.db.execute(query, params)
 
 
 Column = namedtuple(
