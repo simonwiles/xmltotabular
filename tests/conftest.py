@@ -3,6 +3,13 @@ import logging
 import pytest
 import yaml
 
+from xmltotabular.sqlite_db import SqliteDB
+
+
+@pytest.fixture
+def empty_db():
+    return SqliteDB(":memory:")
+
 
 @pytest.fixture
 def simple_config():

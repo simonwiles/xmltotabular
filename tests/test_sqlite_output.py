@@ -1,14 +1,13 @@
 from xmltotabular import XmlCollectionToTabular
-from xmltotabular.sqlite_db import SqliteDB
 
 
 def normalize_schema(schema):
     return " ".join(schema.split())
 
 
-def test_simple_table_creation(simple_config, debug_logger):
+def test_simple_table_creation(empty_db, simple_config, debug_logger):
     get_fieldnames = XmlCollectionToTabular.get_fieldnames
-    db = SqliteDB(":memory:")
+    db = empty_db
 
     for tablename, fieldnames in get_fieldnames(simple_config).items():
         db[tablename].create({fieldname: str for fieldname in fieldnames})
@@ -26,9 +25,9 @@ def test_simple_table_creation(simple_config, debug_logger):
     assert normalize_schema(db["album"].schema) == normalize_schema(expected_schema)
 
 
-def test_table_creation_with_fields_reversed(simple_config, debug_logger):
+def test_table_creation_with_fields_reversed(empty_db, simple_config, debug_logger):
     get_fieldnames = XmlCollectionToTabular.get_fieldnames
-    db = SqliteDB(":memory:")
+    db = empty_db
 
     for tablename, fieldnames in get_fieldnames(simple_config).items():
         params = {"column_order": list(reversed(fieldnames))}
@@ -47,9 +46,9 @@ def test_table_creation_with_fields_reversed(simple_config, debug_logger):
     assert normalize_schema(db["album"].schema) == normalize_schema(expected_schema)
 
 
-def test_table_creation_with_pk(simple_config, debug_logger):
+def test_table_creation_with_pk(empty_db, simple_config, debug_logger):
     get_fieldnames = XmlCollectionToTabular.get_fieldnames
-    db = SqliteDB(":memory:")
+    db = empty_db
 
     for tablename, fieldnames in get_fieldnames(simple_config).items():
         params = {"pk": "name"}
@@ -68,9 +67,9 @@ def test_table_creation_with_pk(simple_config, debug_logger):
     assert normalize_schema(db["album"].schema) == normalize_schema(expected_schema)
 
 
-def test_table_creation_additional_fields(simple_config, debug_logger):
+def test_table_creation_additional_fields(empty_db, simple_config, debug_logger):
     get_fieldnames = XmlCollectionToTabular.get_fieldnames
-    db = SqliteDB(":memory:")
+    db = empty_db
 
     for tablename, fieldnames in get_fieldnames(simple_config).items():
         db[tablename].create({fieldname: str for fieldname in fieldnames})
@@ -99,9 +98,9 @@ def test_table_creation_additional_fields(simple_config, debug_logger):
     assert normalize_schema(db["album"].schema) == normalize_schema(expected_schema)
 
 
-def test_simple_data_insertion(simple_config, debug_logger):
+def test_simple_data_insertion(empty_db, simple_config, debug_logger):
     get_fieldnames = XmlCollectionToTabular.get_fieldnames
-    db = SqliteDB(":memory:")
+    db = empty_db
 
     for tablename, fieldnames in get_fieldnames(simple_config).items():
         db[tablename].create({fieldname: str for fieldname in fieldnames})
