@@ -1,4 +1,7 @@
+import pytest
+
 from xmltotabular import XmlCollectionToTabular
+from xmltotabular.sqlite_db import SQLITE_MAX_COLUMN
 
 
 def normalize_schema(schema):
@@ -123,3 +126,16 @@ def test_simple_data_insertion(empty_db, simple_config, debug_logger):
     selected = db.execute("SELECT * FROM album;").fetchall()
 
     assert selected == [("Five Leaves Left", "Nick Drake", "1969", "Island", "Folk")]
+
+
+@pytest.mark.parametrize(
+    "num_columns,should_error",
+    ((100, False), (SQLITE_MAX_COLUMN, False), (SQLITE_MAX_COLUMN + 1, True)),
+)
+def test_error_if_too_many_columns(empty_db, num_columns, should_error):
+    columns = {f"c{i}": str for i in range(num_columns)}
+    if should_error:
+        with pytest.raises(AssertionError):
+            empty_db["too-many-columns"].create(columns)
+    else:
+        empty_db["too-many-columns"].create(columns)
