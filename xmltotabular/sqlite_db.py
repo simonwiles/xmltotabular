@@ -156,6 +156,10 @@ class Table:
         column_order=None,
         not_null=None,
     ):
+        assert (
+            len(columns) <= SQLITE_MAX_COLUMN
+        ), f"Tables can have a maximum of {SQLITE_MAX_COLUMN} columns"
+
         with self.db.conn:
             self.db.create_table(
                 self.name,
