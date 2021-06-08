@@ -97,3 +97,30 @@ def test_table_creation_additional_fields(simple_config, debug_logger):
 
     assert "album" in db.table_names()
     assert normalize_schema(db["album"].schema) == normalize_schema(expected_schema)
+
+
+def test_simple_data_insertion(simple_config, debug_logger):
+    get_fieldnames = XmlCollectionToTabular.get_fieldnames
+    db = SqliteDB(":memory:")
+
+    for tablename, fieldnames in get_fieldnames(simple_config).items():
+        db[tablename].create({fieldname: str for fieldname in fieldnames})
+
+    tables = {
+        "album": [
+            {
+                "name": "Five Leaves Left",
+                "artist": "Nick Drake",
+                "released": "1969",
+                "label": "Island",
+                "genre": "Folk",
+            }
+        ]
+    }
+
+    for tablename, rows in tables.items():
+        db[tablename].insert_all(rows)
+
+    selected = db.execute("SELECT * FROM album;").fetchall()
+
+    assert selected == [("Five Leaves Left", "Nick Drake", "1969", "Island", "Folk")]
