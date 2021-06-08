@@ -142,7 +142,7 @@ class Table:
     @property
     def schema(self):
         return self.db.execute(
-            "select sql from sqlite_master where name = ?", (self.name,)
+            "SELECT sql FROM sqlite_master WHERE name = ?", (self.name,)
         ).fetchone()[0]
 
     def exists(self):
@@ -182,7 +182,7 @@ Column = namedtuple(
 
 
 def validate_column_names(columns):
-    # Validate no columns contain '[' or ']' - see https://bugs.python.org/issue39652
+    # Columns may not contain '[' or ']' (https://bugs.python.org/issue39652)
     for column in columns:
         assert (
             "[" not in column and "]" not in column
