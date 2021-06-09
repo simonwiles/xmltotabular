@@ -134,7 +134,7 @@ class Table:
         self.name = name
 
     @property
-    def column_names(self):
+    def columns(self):
         if not self.exists():
             return []
         rows = self.db.execute("PRAGMA table_info([{}])".format(self.name)).fetchall()
@@ -181,32 +181,16 @@ class Table:
         return self
 
     def insert_sql(self, records):
-        values = []
-        for record in records:
-            record_values = []
-            for key in self.column_names:
-                value = record.get(key, None)
-                record_values.append(value)
-            values.append(record_values)
+        values = ((record.get(key, None) for key in self.columns) for record in records)
 
-        queries_and_params = []
+        columns = ", ".join(f"[{c}]" for c in self.columns)
+        placeholders = ", ".join("?" * len(self.columns))
+        rows = ", ".join(f"({placeholders})" for record in records)
 
-        sql = """
-            INSERT INTO [{table}] ({columns}) VALUES {rows};
-        """.strip().format(
-            table=self.name,
-            columns=", ".join("[{}]".format(c) for c in self.column_names),
-            rows=", ".join(
-                "({placeholders})".format(
-                    placeholders=", ".join("?" for col in self.column_names)
-                )
-                for record in records
-            ),
-        )
-        flat_values = list(itertools.chain(*values))
-        queries_and_params = (sql, flat_values)
+        sql = f"INSERT INTO [{self.name}] ({columns}) VALUES {rows};"
+        params = list(itertools.chain(*values))
 
-        return queries_and_params
+        return sql, params
 
     def insert_all(self, records):
         query, params = self.insert_sql(records)
@@ -218,9 +202,9 @@ Column = namedtuple(
 )
 
 
-def validate_column_names(columns):
+def validate_column_names(column_names):
     # Columns may not contain '[' or ']' (https://bugs.python.org/issue39652)
-    for column in columns:
+    for column_name in column_names:
         assert (
-            "[" not in column and "]" not in column
+            "[" not in column_name and "]" not in column_name
         ), "'[' and ']' cannot be used in column names"
