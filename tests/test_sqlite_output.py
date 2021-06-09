@@ -143,3 +143,24 @@ def test_error_if_too_many_columns(empty_db, num_columns, should_error):
             empty_db["too-many-columns"].create(columns)
     else:
         empty_db["too-many-columns"].create(columns)
+
+
+@pytest.mark.parametrize(
+    "num_rows",
+    (
+        # Simplest case
+        1,
+        # Default SQLITE_MAX_VARIABLE_NUMBER for SQLite versions < 3.32.0 (2020-05-22)
+        999,
+        999 + 1,
+        # Default SQLITE_MAX_VARIABLE_NUMBER for SQLite versions >= 3.32.0
+        32766 + 1,
+        # Default SQLITE_MAX_VARIABLE_NUMBER for SQLite distributed
+        #  with Debian, Ubuntu, Homebrew etc.
+        250000 + 1,
+    ),
+)
+def test_error_if_too_many_vars(empty_db, num_rows):
+    empty_db["too-many-vars"].create({"c": str})
+    rows = [{"c": i} for i in range(num_rows)]
+    empty_db["too-many-vars"].insert_all(rows)
