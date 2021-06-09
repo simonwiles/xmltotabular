@@ -154,21 +154,30 @@ class Table:
         self.db.execute(sql)
         return self
 
-    def insert_sql(self, records):
-        values = ((record.get(key, None) for key in self.columns) for record in records)
+    def generate_insert_batches(self, records):
+        def batches(records, max_batch_size):
+            """Yield successive batches of `records` of size `max_batch_size`."""
+            for i in range(0, len(records), max_batch_size):
+                yield records[i : i + max_batch_size]
 
+        num_columns = len(self.columns)
+
+        max_batch_size = SQLITE_MAX_VARIABLE_NUMBER // num_columns
         columns = ", ".join(f"[{c}]" for c in self.columns)
-        placeholders = ", ".join("?" * len(self.columns))
-        rows = ", ".join(f"({placeholders})" for record in records)
+        placeholders = ", ".join("?" * num_columns)
 
-        sql = f"INSERT INTO [{self.name}] ({columns}) VALUES {rows};"
-        params = list(itertools.chain(*values))
-
-        return sql, params
+        for batch in batches(records, max_batch_size):
+            params = [
+                [record.get(key, None) for key in self.columns] for record in batch
+            ]
+            rows = ", ".join(f"({placeholders})" for record in batch)
+            sql = f"INSERT INTO [{self.name}] ({columns}) VALUES {rows};"
+            yield (sql, list(itertools.chain(*params)))
 
     def insert_all(self, records):
-        query, params = self.insert_sql(records)
-        self.db.execute(query, params)
+        for sql, params in self.generate_insert_batches(records):
+            self.db.execute(sql, params)
+        self.db.conn.commit()
 
 
 Column = namedtuple(
