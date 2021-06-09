@@ -106,26 +106,14 @@ def test_table_creation_additional_fields(empty_db, simple_config, debug_logger)
     assert normalize_schema(db["album"].schema) == normalize_schema(expected_schema)
 
 
-def test_simple_data_insertion(empty_db, simple_config, debug_logger):
+def test_simple_data_insertion(empty_db, simple_config, simple_data, debug_logger):
     get_fieldnames = XmlCollectionToTabular.get_fieldnames
     db = empty_db
 
     for tablename, fieldnames in get_fieldnames(simple_config).items():
         db[tablename].create({fieldname: str for fieldname in fieldnames})
 
-    tables = {
-        "album": [
-            {
-                "name": "Five Leaves Left",
-                "artist": "Nick Drake",
-                "released": "1969",
-                "label": "Island",
-                "genre": "Folk",
-            }
-        ]
-    }
-
-    for tablename, rows in tables.items():
+    for tablename, rows in simple_data.items():
         db[tablename].insert_all(rows)
 
     selected = db.execute("SELECT * FROM album;").fetchall()
