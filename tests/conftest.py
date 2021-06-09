@@ -3,6 +3,13 @@ import logging
 import pytest
 import yaml
 
+from xmltotabular.sqlite_db import SqliteDB
+
+
+@pytest.fixture
+def empty_db():
+    return SqliteDB(":memory:")
+
 
 @pytest.fixture
 def simple_config():
@@ -17,6 +24,21 @@ def simple_config():
         genre: genre
     """
     return yaml.safe_load(config)
+
+
+@pytest.fixture
+def simple_data():
+    return {
+        "album": [
+            {
+                "name": "Five Leaves Left",
+                "artist": "Nick Drake",
+                "released": "1969",
+                "label": "Island",
+                "genre": "Folk",
+            }
+        ]
+    }
 
 
 @pytest.fixture

@@ -19,7 +19,6 @@ setup(
         "lxml",
         "pyyaml",
         "termcolor",
-        "sqlite_utils",
         "multiprocess ; python_version < '3.7'",
     ],
     classifiers=[

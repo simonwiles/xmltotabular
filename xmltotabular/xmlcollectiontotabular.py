@@ -1,6 +1,5 @@
 import csv
 import logging
-import sqlite3
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -8,6 +7,7 @@ from pprint import pformat
 
 import yaml
 
+from .sqlite_db import SqliteDB
 from .utils import expand_paths, colored, Pool, cpu_count, yield_xml_doc
 from .xmldoctotabular import XmlDocToTabular
 
@@ -49,11 +49,28 @@ class XmlCollectionToTabular:
             self.config = yaml.safe_load(open(config))
 
         self.output_type = output_type
-        if self.output_type == "sqlite":
-            self.init_sqlite_db(output_path)
+        self.output_path = Path(output_path).resolve()
 
-        if self.output_type == "csv":
-            self.output_path = Path(output_path)
+        if self.output_type == "sqlite":
+            if self.output_path.is_dir():
+                self.output_path = (self.output_path / "db.sqlite").resolve()
+
+            if self.output_path.suffix != "sqlite":
+                self.output_path = self.output_path.with_suffix(".sqlite")
+
+            if self.output_path.exists():
+                self.logger.warning(
+                    colored(
+                        "Sqlite database %s exists; records will be appended.",
+                        "yellow",
+                    ),
+                    self.output_path,
+                )
+            else:
+                self.output_path.parent.mkdir(parents=True, exist_ok=True)
+
+            self.init_sqlite_db(self.output_path)
+        else:
             self.output_path.mkdir(parents=True, exist_ok=True)
 
         self.dtd_path = dtd_path
@@ -77,48 +94,15 @@ class XmlCollectionToTabular:
             )
 
     def init_sqlite_db(self, output_path):
-        try:
-            from sqlite_utils import Database as SqliteDB  # noqa
+        self.db = SqliteDB(output_path)
 
-        except ImportError:
-            self.logger.debug("sqlite_utils (pip3 install sqlite-utils) not available")
-            raise
-
-        if output_path == ":memory:":
-            self.output_path = output_path
-            db_conn = sqlite3.connect(":memory:")
-
-        else:
-
-            self.output_path = Path(output_path).resolve()
-
-            if self.output_path.is_dir():
-                self.output_path = (self.output_path / "db.sqlite").resolve()
-
-            if self.output_path.suffix != "sqlite":
-                self.output_path = self.output_path.with_suffix(".sqlite")
-
-            if self.output_path.exists():
-                self.logger.warning(
-                    colored(
-                        "Sqlite database %s exists; records will be appended.",
-                        "yellow",
-                    ),
-                    self.output_path,
-                )
-            else:
-                self.output_path.parent.mkdir(parents=True, exist_ok=True)
-
-            db_conn = sqlite3.connect(str(self.output_path), isolation_level=None)
-
-        db_conn.execute("pragma synchronous=off;")
-        db_conn.execute("pragma journal_mode=memory;")
-        self.db = SqliteDB(db_conn)
+        self.db.execute("pragma synchronous=off;")
+        self.db.execute("pragma journal_mode=memory;")
 
         for tablename, fieldnames in self.get_fieldnames(self.config).items():
             if tablename in self.db.table_names():
                 for fieldname in fieldnames:
-                    if fieldname not in self.db[tablename].columns_dict:
+                    if fieldname not in self.db[tablename].columns:
                         self.db[tablename].add_column(fieldname, str)
                 continue
             params = {"column_order": fieldnames}
