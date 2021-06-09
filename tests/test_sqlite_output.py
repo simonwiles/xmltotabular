@@ -11,7 +11,7 @@ def normalize_schema(schema):
     return re.sub(r"\s(?=[,)])|(?<=\()\s", "", " ".join(schema.split()))
 
 
-def test_simple_table_creation(empty_db, simple_config, debug_logger):
+def test_simple_table_creation(empty_db, simple_config):
     get_fieldnames = XmlCollectionToTabular.get_fieldnames
     db = empty_db
 
@@ -32,7 +32,7 @@ def test_simple_table_creation(empty_db, simple_config, debug_logger):
     assert normalize_schema(db["album"].schema) == normalize_schema(expected_schema)
 
 
-def test_table_creation_with_fields_reversed(empty_db, simple_config, debug_logger):
+def test_table_creation_with_fields_reversed(empty_db, simple_config):
     get_fieldnames = XmlCollectionToTabular.get_fieldnames
     db = empty_db
 
@@ -54,7 +54,7 @@ def test_table_creation_with_fields_reversed(empty_db, simple_config, debug_logg
     assert normalize_schema(db["album"].schema) == normalize_schema(expected_schema)
 
 
-def test_table_creation_with_pk(empty_db, simple_config, debug_logger):
+def test_table_creation_with_pk(empty_db, simple_config):
     get_fieldnames = XmlCollectionToTabular.get_fieldnames
     db = empty_db
 
@@ -76,7 +76,7 @@ def test_table_creation_with_pk(empty_db, simple_config, debug_logger):
     assert normalize_schema(db["album"].schema) == normalize_schema(expected_schema)
 
 
-def test_table_creation_additional_fields(empty_db, simple_config, debug_logger):
+def test_table_creation_additional_fields(empty_db, simple_config):
     get_fieldnames = XmlCollectionToTabular.get_fieldnames
     db = empty_db
 
@@ -106,7 +106,7 @@ def test_table_creation_additional_fields(empty_db, simple_config, debug_logger)
     assert normalize_schema(db["album"].schema) == normalize_schema(expected_schema)
 
 
-def test_simple_data_insertion(empty_db, simple_config, simple_data, debug_logger):
+def test_simple_data_insertion(empty_db, simple_config, simple_data):
     get_fieldnames = XmlCollectionToTabular.get_fieldnames
     db = empty_db
 
