@@ -17,5 +17,4 @@ wheel = "*"
 
 [packages]
 lxml = "*"
-sqlite-utils = "*"
 termcolor = "*"
