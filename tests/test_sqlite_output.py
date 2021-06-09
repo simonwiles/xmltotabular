@@ -1,11 +1,14 @@
 import pytest
+import re
 
 from xmltotabular import XmlCollectionToTabular
 from xmltotabular.sqlite_db import SQLITE_MAX_COLUMN
 
 
 def normalize_schema(schema):
-    return " ".join(schema.split())
+    """Normalize whitespace in SQL statements returned by SqliteDB[table].schema
+    for convenient comparison."""
+    return re.sub(r"\s(?=[,)])|(?<=\()\s", "", " ".join(schema.split()))
 
 
 def test_simple_table_creation(empty_db, simple_config, debug_logger):
@@ -86,8 +89,6 @@ def test_table_creation_additional_fields(empty_db, simple_config, debug_logger)
             for fieldname in fieldnames:
                 if fieldname not in db[tablename].columns:
                     db[tablename].add_column(fieldname, str)
-
-    print(f"{db['album'].schema=}")
 
     expected_schema = """
     CREATE TABLE [album] (
