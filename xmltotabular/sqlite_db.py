@@ -1,9 +1,6 @@
 import itertools
 import sqlite3
 from collections import namedtuple
-from pathlib import Path
-
-from .utils import colored
 
 SQLITE_MAX_COLUMN = 2000
 SQLITE_MAX_VARIABLE_NUMBER = 999
@@ -31,28 +28,8 @@ class SqliteDB:
     def __init__(self, path):
         if path == ":memory:":
             self.conn = sqlite3.connect(":memory:")
-            self.path = ":memory:"
         else:
-            self.path = Path(path).resolve()
-
-            if self.path.is_dir():
-                self.path = (self.path / "db.sqlite").resolve()
-
-            if self.path.suffix != "sqlite":
-                self.path = self.path.with_suffix(".sqlite")
-
-            if self.path.exists():
-                self.logger.warning(
-                    colored(
-                        "Sqlite database %s exists; records will be appended.",
-                        "yellow",
-                    ),
-                    self.path,
-                )
-            else:
-                self.path.parent.mkdir(parents=True, exist_ok=True)
-
-            self.conn = sqlite3.connect(str(self.path), isolation_level=None)
+            self.conn = sqlite3.connect(str(path), isolation_level=None)
 
     def __getitem__(self, table_name):
         return Table(self, table_name)
@@ -175,7 +152,6 @@ class Table:
             table=self.name, col_name=col_name, col_type=COLUMN_TYPE_MAPPING[col_type]
         )
         self.db.execute(sql)
-
         return self
 
     def insert_sql(self, records):
