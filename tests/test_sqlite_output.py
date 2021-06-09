@@ -21,7 +21,8 @@ def test_simple_table_creation(empty_db, simple_config, debug_logger):
         [artist] TEXT,
         [released] TEXT,
         [label] TEXT,
-        [genre] TEXT)
+        [genre] TEXT
+    )
     """
 
     assert "album" in db.table_names()
@@ -42,7 +43,8 @@ def test_table_creation_with_fields_reversed(empty_db, simple_config, debug_logg
         [label] TEXT,
         [released] TEXT,
         [artist] TEXT,
-        [name] TEXT)
+        [name] TEXT
+    )
     """
 
     assert "album" in db.table_names()
@@ -63,7 +65,8 @@ def test_table_creation_with_pk(empty_db, simple_config, debug_logger):
         [artist] TEXT,
         [released] TEXT,
         [label] TEXT,
-        [genre] TEXT)
+        [genre] TEXT
+    )
     """
 
     assert "album" in db.table_names()
@@ -94,7 +97,8 @@ def test_table_creation_additional_fields(empty_db, simple_config, debug_logger)
         [label] TEXT,
         [genre] TEXT,
         [description] TEXT,
-        [notes] TEXT)
+        [notes] TEXT
+    )
     """
 
     assert "album" in db.table_names()

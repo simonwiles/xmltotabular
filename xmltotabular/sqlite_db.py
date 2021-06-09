@@ -111,9 +111,7 @@ class SqliteDB:
                 )
             )
         columns_sql = ",\n".join(column_defs)
-        sql = """CREATE TABLE [{table}] ({columns_sql});""".format(
-            table=name, columns_sql=columns_sql
-        )
+        sql = f"CREATE TABLE [{name}] (\n{columns_sql}\n);"
         return sql
 
     def create_table(self, name, columns, pk=None, column_order=None, not_null=None):
