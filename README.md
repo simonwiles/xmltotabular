@@ -2,6 +2,7 @@
 
 [![PyPI](https://img.shields.io/pypi/v/xmltotabular?logo=pypi&logoColor=white)](https://pypi.org/project/xmltotabular/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/xmltotabular?logo=python&logoColor=white)](https://pypi.org/project/xmltotabular/)
+[![Tests](https://github.com/simonwiles/xmltotabular/actions/workflows/test.yml/badge.svg)](https://github.com/simonwiles/xmltotabular/actions/workflows/test.yml)
 [![License](https://img.shields.io/github/license/simonwiles/xmltotabular)](https://github.com/simonwiles/xmltotabular/blob/main/LICENSE)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
