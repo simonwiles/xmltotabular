@@ -22,7 +22,10 @@ class XmlCollectionToTabular:
         dtd_path=None,
         preprocess_doc=None,
         log_level=logging.INFO,
-        **kwargs,
+        recurse=True,
+        validate=False,
+        processes=None,
+        continue_on_error=False,
     ):
 
         self.logger = logging.getLogger(__name__)
@@ -38,7 +41,7 @@ class XmlCollectionToTabular:
                     self.xml_files.append(path)
                 elif path.is_dir():
                     self.xml_files.extend(
-                        path.glob(f'{"**/" if kwargs["recurse"] else ""}*.[xX][mM][lL]')
+                        path.glob(f'{"**/" if recurse else ""}*.[xX][mM][lL]')
                     )
                 else:
                     self.logger.fatal("specified input is invalid")
@@ -82,9 +85,9 @@ class XmlCollectionToTabular:
 
         self.dtd_path = dtd_path
         self.preprocess_doc = preprocess_doc
-        self.validate = kwargs["validate"]
-        self.processes = kwargs["processes"]
-        self.continue_on_error = kwargs["continue_on_error"]
+        self.validate = validate
+        self.processes = processes
+        self.continue_on_error = continue_on_error
 
         self.fieldnames = self.get_fieldnames(self.config)
         self.set_root_config()
