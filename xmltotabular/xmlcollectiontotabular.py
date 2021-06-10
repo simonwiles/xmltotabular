@@ -155,7 +155,7 @@ class XmlCollectionToTabular:
 
             if all_tables:
                 self.logger.info(colored("...%d records processed!", "green"), i + 1)
-                self.flush_to_disk(all_tables)
+                self.write_tables(all_tables)
             else:
                 self.logger.warning(
                     colored("No records found! (config file error?)", "red")
@@ -164,7 +164,7 @@ class XmlCollectionToTabular:
         if self.output_type == "sqlite" and self.output_path == ":memory:":
             return self.db
 
-    def flush_to_disk(self, tables):
+    def write_tables(self, tables):
         if self.output_type == "csv":
             self.write_csv_files(tables)
 
