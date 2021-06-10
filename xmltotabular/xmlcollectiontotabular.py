@@ -24,6 +24,7 @@ class XmlCollectionToTabular:
         log_level=logging.INFO,
         recurse=True,
         validate=False,
+        check_doctype=False,
         processes=None,
         continue_on_error=False,
     ):
@@ -90,7 +91,8 @@ class XmlCollectionToTabular:
         self.continue_on_error = continue_on_error
 
         self.fieldnames = self.get_fieldnames(self.config)
-        self.set_root_config()
+        if check_doctype:
+            self.set_root_config()
 
     def set_root_config(self):
         if "xml_root" not in self.config:
