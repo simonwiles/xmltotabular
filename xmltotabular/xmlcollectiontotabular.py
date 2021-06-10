@@ -49,9 +49,14 @@ class XmlCollectionToTabular:
             self.config = yaml.safe_load(open(config))
 
         self.output_type = output_type
-        self.output_path = Path(output_path).resolve()
+        self.output_path = output_path
 
-        if self.output_type == "sqlite":
+        if self.output_type == "sqlite" and self.output_path == ":memory:":
+            self.init_sqlite_db(self.output_path)
+
+        elif self.output_type == "sqlite":
+            self.output_path = Path(self.output_path).resolve()
+
             if self.output_path.is_dir():
                 self.output_path = (self.output_path / "db.sqlite").resolve()
 
@@ -70,7 +75,9 @@ class XmlCollectionToTabular:
                 self.output_path.parent.mkdir(parents=True, exist_ok=True)
 
             self.init_sqlite_db(self.output_path)
+
         else:
+            self.output_path = Path(self.output_path).resolve()
             self.output_path.mkdir(parents=True, exist_ok=True)
 
         self.dtd_path = dtd_path
