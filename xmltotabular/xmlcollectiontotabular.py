@@ -134,7 +134,9 @@ class XmlCollectionToTabular:
 
         for input_file in self.xml_files:
 
-            self.logger.warn(colored("Processing %s...", "green"), input_file.resolve())
+            self.logger.warning(
+                colored("Processing %s...", "green"), input_file.resolve()
+            )
 
             processes = self.processes or cpu_count() - 1 or 1
             # chunk sizes greater than 1 result in duplicate returns because the results
