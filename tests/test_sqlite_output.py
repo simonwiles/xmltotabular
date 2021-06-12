@@ -1,7 +1,9 @@
 import pytest
 import re
+import tempfile
+from pathlib import Path
 
-from xmltotabular.sqlite_db import SQLITE_MAX_COLUMN
+from xmltotabular.sqlite_db import SQLITE_MAX_COLUMN, SqliteDB
 from xmltotabular.utils import get_fieldnames_from_config
 
 
@@ -137,6 +139,23 @@ def test_multiple_rows_insertion(empty_db):
         tuple(f"data_{row:03}_{col:02}" for col in range(num_columns))
         for row in range(num_rows)
     ]
+
+
+def test_writing_to_filesystem(simple_config, simple_data):
+    dirpath = tempfile.mkdtemp()
+    db_path = Path(dirpath) / "test_db.sqlite"
+
+    db = SqliteDB(db_path)
+
+    for tablename, fieldnames in get_fieldnames_from_config(simple_config).items():
+        db[tablename].create({fieldname: str for fieldname in fieldnames})
+
+    for tablename, rows in simple_data.items():
+        db[tablename].insert_all(rows)
+
+    selected = db.execute("SELECT * FROM album;").fetchall()
+
+    assert selected == [("Five Leaves Left", "Nick Drake", "1969", "Island", "Folk")]
 
 
 @pytest.mark.parametrize(
