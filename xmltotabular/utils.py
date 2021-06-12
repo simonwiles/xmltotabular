@@ -3,7 +3,6 @@ from collections import defaultdict
 from pathlib import Path
 from pprint import pformat
 
-
 from lxml import etree
 
 assert sys.version_info >= (3, 6), "Error: Python 3.6 or newer is required."
@@ -26,12 +25,13 @@ try:
 except (AssertionError, ImportError):
 
     def colored(text, *args, **kwargs):
-        """ Dummy function in case termcolor is not available. """
+        """Dummy function to pass text through without escape codes if stdout is not a
+        TTY or termcolor is not available."""
         return text
 
 
 def expand_paths(path_expr):
-
+    """Given a path expression, return a list of paths."""
     path = Path(path_expr).expanduser()
     if path.is_file():
         return [path]
@@ -41,6 +41,8 @@ def expand_paths(path_expr):
 
 
 class DTDResolver(etree.Resolver):
+    """A DTDResolver class which resolves DTDs relative to a supplied base path."""
+
     def __init__(self, dtd_path):
         self.dtd_path = Path(dtd_path)
 
@@ -62,9 +64,11 @@ class NoDoctypeException(Exception):
 
 
 def test_doctype(doc, expected_doctype):
+    """Test an XML document (passed as a string) for a DOCTYPE declaration that matches
+    `expected_doctype`."""
     for line in doc.split("\n"):
         if line.startswith(f"<!DOCTYPE {expected_doctype}"):
-            return
+            return True
         elif line.startswith("<!DOCTYPE "):
             raise WrongDoctypeException(line)
 
@@ -72,6 +76,9 @@ def test_doctype(doc, expected_doctype):
 
 
 def yield_xml_doc(filepath):
+    """Given a path to a file containing one or more XML documents, for each document
+    yield a dictionary containing a document, the filename, and the ending line number
+    at which the document is found."""
     filename = filepath.resolve().name
     xml_doc = []
 
@@ -107,6 +114,9 @@ def yield_xml_doc(filepath):
 
 
 def get_fieldnames_from_config(full_config):
+    """Parse a config object and return a dictionary where keys are table names and
+    values are lists of field names."""
+
     # On python >=3.7, dictionaries maintain key order, so fields are guaranteed to
     #  be returned in the order in which they appear in the config file.  To
     #  guarantee this on versions of python <3.7 (insofar as it matters),
