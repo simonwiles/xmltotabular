@@ -31,6 +31,7 @@ def simple_data():
     return {
         "album": [
             {
+                "id": "None_0",
                 "name": "Five Leaves Left",
                 "artist": "Nick Drake",
                 "released": "1969",
