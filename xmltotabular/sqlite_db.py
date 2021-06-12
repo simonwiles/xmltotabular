@@ -131,9 +131,11 @@ class Table:
         column_order=None,
         not_null=None,
     ):
-        assert (
-            len(columns) <= SQLITE_MAX_COLUMN
-        ), f"Tables can have a maximum of {SQLITE_MAX_COLUMN} columns"
+        assert len(columns) <= min(SQLITE_MAX_VARIABLE_NUMBER, SQLITE_MAX_COLUMN), (
+            "Tables can have a maximum of "
+            f"{min(SQLITE_MAX_VARIABLE_NUMBER, SQLITE_MAX_COLUMN)} "
+            "columns on this system."
+        )
 
         with self.db.conn:
             self.db.create_table(
