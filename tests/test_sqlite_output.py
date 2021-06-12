@@ -3,7 +3,11 @@ import re
 import tempfile
 from pathlib import Path
 
-from xmltotabular.sqlite_db import SQLITE_MAX_COLUMN, SqliteDB
+from xmltotabular.sqlite_db import (
+    SqliteDB,
+    SQLITE_MAX_VARIABLE_NUMBER,
+    SQLITE_MAX_COLUMN,
+)
 from xmltotabular.utils import get_fieldnames_from_config
 
 
@@ -160,7 +164,11 @@ def test_writing_to_filesystem(simple_config, simple_data):
 
 @pytest.mark.parametrize(
     "num_columns,should_error",
-    ((100, False), (SQLITE_MAX_COLUMN, False), (SQLITE_MAX_COLUMN + 1, True)),
+    (
+        (100, False),
+        (min(SQLITE_MAX_VARIABLE_NUMBER, SQLITE_MAX_COLUMN), False),
+        (min(SQLITE_MAX_VARIABLE_NUMBER, SQLITE_MAX_COLUMN) + 1, True),
+    ),
 )
 def test_error_if_too_many_columns(empty_db, num_columns, should_error):
     columns = {f"c{i}": str for i in range(num_columns)}
