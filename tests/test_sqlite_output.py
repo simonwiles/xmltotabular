@@ -180,6 +180,26 @@ def test_error_if_too_many_columns(empty_db, num_columns, should_error):
 
 
 @pytest.mark.parametrize(
+    "num_columns,max_vars,should_error",
+    (
+        (100, 250_000, False),
+        (SQLITE_MAX_COLUMN, 250_000, False),
+        (SQLITE_MAX_COLUMN + 1, 250_000, True),
+    ),
+)
+def test_error_if_too_many_columns_with_custom_max_vars(
+    num_columns, max_vars, should_error
+):
+    db = SqliteDB(":memory:", max_vars=max_vars)
+    columns = {f"c{i}": str for i in range(num_columns)}
+    if should_error:
+        with pytest.raises(AssertionError):
+            db["too-many-columns"].create(columns)
+    else:
+        db["too-many-columns"].create(columns)
+
+
+@pytest.mark.parametrize(
     "num_rows",
     (
         # Simplest case
