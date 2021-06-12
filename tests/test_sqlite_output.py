@@ -1,8 +1,8 @@
 import pytest
 import re
 
-from xmltotabular import XmlCollectionToTabular
 from xmltotabular.sqlite_db import SQLITE_MAX_COLUMN
+from xmltotabular.utils import get_fieldnames_from_config
 
 
 def normalize_schema(schema):
@@ -12,10 +12,9 @@ def normalize_schema(schema):
 
 
 def test_simple_table_creation(empty_db, simple_config):
-    get_fieldnames = XmlCollectionToTabular.get_fieldnames
     db = empty_db
 
-    for tablename, fieldnames in get_fieldnames(simple_config).items():
+    for tablename, fieldnames in get_fieldnames_from_config(simple_config).items():
         db[tablename].create({fieldname: str for fieldname in fieldnames})
 
     expected_schema = """
@@ -33,10 +32,9 @@ def test_simple_table_creation(empty_db, simple_config):
 
 
 def test_table_creation_with_fields_reversed(empty_db, simple_config):
-    get_fieldnames = XmlCollectionToTabular.get_fieldnames
     db = empty_db
 
-    for tablename, fieldnames in get_fieldnames(simple_config).items():
+    for tablename, fieldnames in get_fieldnames_from_config(simple_config).items():
         params = {"column_order": list(reversed(fieldnames))}
         db[tablename].create({fieldname: str for fieldname in fieldnames}, **params)
 
@@ -55,10 +53,9 @@ def test_table_creation_with_fields_reversed(empty_db, simple_config):
 
 
 def test_table_creation_with_pk(empty_db, simple_config):
-    get_fieldnames = XmlCollectionToTabular.get_fieldnames
     db = empty_db
 
-    for tablename, fieldnames in get_fieldnames(simple_config).items():
+    for tablename, fieldnames in get_fieldnames_from_config(simple_config).items():
         params = {"pk": "name"}
         db[tablename].create({fieldname: str for fieldname in fieldnames}, **params)
 
@@ -77,10 +74,9 @@ def test_table_creation_with_pk(empty_db, simple_config):
 
 
 def test_table_creation_additional_fields(empty_db, simple_config):
-    get_fieldnames = XmlCollectionToTabular.get_fieldnames
     db = empty_db
 
-    for tablename, fieldnames in get_fieldnames(simple_config).items():
+    for tablename, fieldnames in get_fieldnames_from_config(simple_config).items():
         db[tablename].create({fieldname: str for fieldname in fieldnames})
 
     additional_fields = {"album": ["description", "notes"]}
@@ -107,10 +103,9 @@ def test_table_creation_additional_fields(empty_db, simple_config):
 
 
 def test_simple_data_insertion(empty_db, simple_config, simple_data):
-    get_fieldnames = XmlCollectionToTabular.get_fieldnames
     db = empty_db
 
-    for tablename, fieldnames in get_fieldnames(simple_config).items():
+    for tablename, fieldnames in get_fieldnames_from_config(simple_config).items():
         db[tablename].create({fieldname: str for fieldname in fieldnames})
 
     for tablename, rows in simple_data.items():

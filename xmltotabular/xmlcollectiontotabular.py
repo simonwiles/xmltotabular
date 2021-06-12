@@ -3,12 +3,18 @@ import logging
 import sys
 from collections import defaultdict
 from pathlib import Path
-from pprint import pformat
 
 import yaml
 
 from .sqlite_db import SqliteDB
-from .utils import expand_paths, colored, Pool, cpu_count, yield_xml_doc
+from .utils import (
+    expand_paths,
+    colored,
+    Pool,
+    cpu_count,
+    yield_xml_doc,
+    get_fieldnames_from_config,
+)
 from .xmldoctotabular import XmlDocToTabular
 
 
@@ -90,7 +96,7 @@ class XmlCollectionToTabular:
         self.processes = processes
         self.continue_on_error = continue_on_error
 
-        self.fieldnames = self.get_fieldnames(self.config)
+        self.fieldnames = get_fieldnames_from_config(self.config)
         if check_doctype:
             self.set_root_config()
 
@@ -111,7 +117,7 @@ class XmlCollectionToTabular:
         self.db.execute("pragma synchronous=off;")
         self.db.execute("pragma journal_mode=memory;")
 
-        for tablename, fieldnames in self.get_fieldnames(self.config).items():
+        for tablename, fieldnames in get_fieldnames_from_config(self.config).items():
             if tablename in self.db.table_names():
                 for fieldname in fieldnames:
                     if fieldname not in self.db[tablename].columns:
@@ -184,65 +190,6 @@ class XmlCollectionToTabular:
 
         if self.output_type == "sqlite":
             self.write_sqlitedb(tables)
-
-    @staticmethod
-    def get_fieldnames(full_config):
-        # On python >=3.7, dictionaries maintain key order, so fields are guaranteed to
-        #  be returned in the order in which they appear in the config file.  To
-        #  guarantee this on versions of python <3.7 (insofar as it matters),
-        #  collections.OrderedDict would have to be used here.
-
-        fieldnames = defaultdict(list)
-
-        def add_fieldnames(config, _fieldnames, parent_entity=None):
-            if isinstance(config, str):
-                if ":" in config:
-                    _fieldnames.append(config.split(":")[0])
-                    return
-                _fieldnames.append(config)
-                return
-
-            if "<fieldname>" in config:
-                _fieldnames.append(config["<fieldname>"])
-                return
-
-            if "<entity>" in config:
-                entity = config["<entity>"]
-                _fieldnames = []
-                if "<primary_key>" in config or parent_entity:
-                    _fieldnames.append("id")
-                if parent_entity:
-                    _fieldnames.append(f"{parent_entity}_id")
-                if "<filename_field>" in config:
-                    _fieldnames.append(config["<filename_field>"])
-                for subconfig in config["<fields>"].values():
-                    add_fieldnames(subconfig, _fieldnames, entity)
-                # different keys (XPath expressions) may be appending rows to the same
-                #  table(s), so we're appending to lists of fieldnames here.
-                fieldnames[entity] = list(
-                    dict.fromkeys(fieldnames[entity] + _fieldnames).keys()
-                )
-                return
-
-            # We may have multiple configurations for this key (XPath expression)
-            if isinstance(config, list):
-                for subconfig in config:
-                    add_fieldnames(subconfig, _fieldnames, parent_entity)
-                return
-
-            raise LookupError(
-                "Invalid configuration:"
-                + "\n "
-                + "\n ".join(pformat(config).split("\n"))
-            )
-
-        for key, config in full_config.items():
-            if key.startswith("<"):
-                # skip keyword instructions
-                continue
-            add_fieldnames(config, [])
-
-        return fieldnames
 
     def write_csv_files(self, tables):
 

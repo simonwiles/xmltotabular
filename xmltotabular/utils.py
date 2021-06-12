@@ -1,5 +1,8 @@
 import sys
+from collections import defaultdict
 from pathlib import Path
+from pprint import pformat
+
 
 from lxml import etree
 
@@ -101,3 +104,60 @@ def yield_xml_doc(filepath):
             "linenum": i - len(xml_doc),
             "doc": "".join(xml_doc),
         }
+
+
+def get_fieldnames_from_config(full_config):
+    # On python >=3.7, dictionaries maintain key order, so fields are guaranteed to
+    #  be returned in the order in which they appear in the config file.  To
+    #  guarantee this on versions of python <3.7 (insofar as it matters),
+    #  collections.OrderedDict would have to be used here.
+
+    fieldnames = defaultdict(list)
+
+    def add_fieldnames(config, _fieldnames, parent_entity=None):
+        if isinstance(config, str):
+            if ":" in config:
+                _fieldnames.append(config.split(":")[0])
+                return
+            _fieldnames.append(config)
+            return
+
+        if "<fieldname>" in config:
+            _fieldnames.append(config["<fieldname>"])
+            return
+
+        if "<entity>" in config:
+            entity = config["<entity>"]
+            _fieldnames = []
+            if "<primary_key>" in config or parent_entity:
+                _fieldnames.append("id")
+            if parent_entity:
+                _fieldnames.append(f"{parent_entity}_id")
+            if "<filename_field>" in config:
+                _fieldnames.append(config["<filename_field>"])
+            for subconfig in config["<fields>"].values():
+                add_fieldnames(subconfig, _fieldnames, entity)
+            # different keys (XPath expressions) may be appending rows to the same
+            #  table(s), so we're appending to lists of fieldnames here.
+            fieldnames[entity] = list(
+                dict.fromkeys(fieldnames[entity] + _fieldnames).keys()
+            )
+            return
+
+        # We may have multiple configurations for this key (XPath expression)
+        if isinstance(config, list):
+            for subconfig in config:
+                add_fieldnames(subconfig, _fieldnames, parent_entity)
+            return
+
+        raise LookupError(
+            "Invalid configuration:" + "\n " + "\n ".join(pformat(config).split("\n"))
+        )
+
+    for key, config in full_config.items():
+        if key.startswith("<"):
+            # skip keyword instructions
+            continue
+        add_fieldnames(config, [])
+
+    return fieldnames
