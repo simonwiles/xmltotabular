@@ -2,8 +2,23 @@ import itertools
 import sqlite3
 from collections import namedtuple
 
-SQLITE_MAX_COLUMN = 2000
+# > SQLITE_MAX_VARIABLE_NUMBER ... defaults to 999 for SQLite versions prior to 3.32.0
+# > (2020-05-22) or 32766 for SQLite versions after 3.32.0.
+#
+# but many distributions ship SQLite compile with this value set much higher
+#  (Debian-based Linux distros and Homebrew, for example, ship SQLite compiled with
+#   SQLITE_MAX_VARIABLE_NUMBER set to 250,000).
+#
+# The default here is to assume the conservative value, but insert performance can be
+#  increased significantly if a higher value can be used, so SqliteDB() accepts a user-
+#  supplied value.  In modern versions of SQLite, the value set at compile-time can be
+#  check with `echo "" | sqlite3 -cmd ".limits variable_number"`.
+#
+# See: https://www.sqlite.org/limits.html#max_variable_number
 SQLITE_MAX_VARIABLE_NUMBER = 999
+
+# See: https://www.sqlite.org/limits.html#max_column
+SQLITE_MAX_COLUMN = 2000
 
 
 COLUMN_TYPE_MAPPING = {
@@ -25,7 +40,8 @@ COLUMN_TYPE_MAPPING = {
 
 
 class SqliteDB:
-    def __init__(self, path):
+    def __init__(self, path, max_vars=SQLITE_MAX_VARIABLE_NUMBER):
+        self.max_vars = max_vars
         if path == ":memory:":
             self.conn = sqlite3.connect(":memory:")
         else:
@@ -131,9 +147,8 @@ class Table:
         column_order=None,
         not_null=None,
     ):
-        assert len(columns) <= min(SQLITE_MAX_VARIABLE_NUMBER, SQLITE_MAX_COLUMN), (
-            "Tables can have a maximum of "
-            f"{min(SQLITE_MAX_VARIABLE_NUMBER, SQLITE_MAX_COLUMN)} "
+        assert len(columns) <= min(self.db.max_vars, SQLITE_MAX_COLUMN), (
+            f"Tables can have a maximum of {min(self.db.max_vars, SQLITE_MAX_COLUMN)} "
             "columns on this system."
         )
 
@@ -164,7 +179,7 @@ class Table:
 
         num_columns = len(self.columns)
 
-        max_batch_size = SQLITE_MAX_VARIABLE_NUMBER // num_columns
+        max_batch_size = self.db.max_vars // num_columns
         columns = ", ".join(f"[{c}]" for c in self.columns)
         placeholders = ", ".join("?" * num_columns)
 
