@@ -17,6 +17,10 @@ def normalize_schema(schema):
     return re.sub(r"\s(?=[,)])|(?<=\()\s", "", " ".join(schema.split()))
 
 
+def test_sqlitedb_repr(empty_db):
+    assert repr(empty_db) == "<Database: :memory:>"
+
+
 def test_simple_table_creation(empty_db, simple_config):
     db = empty_db
 
