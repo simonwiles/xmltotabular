@@ -33,6 +33,7 @@ class XmlCollectionToTabular:
         check_doctype=False,
         processes=None,
         continue_on_error=False,
+        sqlite_max_vars=None,
     ):
 
         self.logger = logging.getLogger(__name__)
