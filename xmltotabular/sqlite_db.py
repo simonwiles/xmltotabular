@@ -64,18 +64,7 @@ class SqliteDB:
         else:
             return self.conn.execute(sql)
 
-    @property
-    def tables(self):
-        return [self[name] for name in self.table_names()]
-
-    def create_table_sql(self, name, columns, pk=None, column_order=None, not_null=None):
-        # Soundness check not_null, and defaults if provided
-        not_null = not_null or set()
-        assert all(
-            n in columns for n in not_null
-        ), "not_null set {} includes items not in columns {}".format(
-            repr(not_null), repr(set(columns.keys()))
-        )
+    def create_table_sql(self, name, columns, pk=None, column_order=None):
         validate_column_names(columns.keys())
         column_items = list(columns.items())
         if column_order is not None:
@@ -87,14 +76,13 @@ class SqliteDB:
 
         column_defs = []
         if isinstance(pk, str):
-            if pk not in [c[0] for c in column_items]:
-                column_items.insert(0, (pk, int))
+            assert (
+                pk in columns
+            ), f"Specified primary-key ({pk}) is not in supplied columns!"
         for column_name, column_type in column_items:
             column_extras = []
             if column_name == pk:
                 column_extras.append("PRIMARY KEY")
-            if column_name in not_null:
-                column_extras.append("NOT NULL")
             column_defs.append(
                 "   [{column_name}] {column_type}{column_extras}".format(
                     column_name=column_name,
@@ -108,13 +96,12 @@ class SqliteDB:
         sql = f"CREATE TABLE [{name}] (\n{columns_sql}\n);"
         return sql
 
-    def create_table(self, name, columns, pk=None, column_order=None, not_null=None):
+    def create_table(self, name, columns, pk=None, column_order=None):
         sql = self.create_table_sql(
             name=name,
             columns=columns,
             pk=pk,
             column_order=column_order,
-            not_null=not_null,
         )
         self.execute(sql)
         return Table(self, name)
@@ -127,8 +114,6 @@ class Table:
 
     @property
     def columns(self):
-        if not self.exists():
-            return []
         rows = self.db.execute("PRAGMA table_info([{}])".format(self.name)).fetchall()
         return {row[1]: Column(*row) for row in rows}
 
@@ -138,15 +123,11 @@ class Table:
             "SELECT sql FROM sqlite_master WHERE name = ?", (self.name,)
         ).fetchone()[0]
 
-    def exists(self):
-        return self.name in self.db.table_names()
-
     def create(
         self,
         columns,
         pk=None,
         column_order=None,
-        not_null=None,
     ):
         assert len(columns) <= min(self.db.max_vars, SQLITE_MAX_COLUMN), (
             f"Tables can have a maximum of {min(self.db.max_vars, SQLITE_MAX_COLUMN)} "
@@ -159,13 +140,10 @@ class Table:
                 columns,
                 pk=pk,
                 column_order=column_order,
-                not_null=not_null,
             )
         return self
 
     def add_column(self, col_name, col_type=None):
-        if col_type is None:
-            col_type = str
         sql = "ALTER TABLE [{table}] ADD COLUMN [{col_name}] {col_type};".format(
             table=self.name, col_name=col_name, col_type=COLUMN_TYPE_MAPPING[col_type]
         )
