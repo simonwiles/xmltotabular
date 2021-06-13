@@ -40,8 +40,9 @@ COLUMN_TYPE_MAPPING = {
 
 
 class SqliteDB:
-    def __init__(self, path, max_vars=SQLITE_MAX_VARIABLE_NUMBER):
-        self.max_vars = max_vars
+    def __init__(self, path, max_vars=None):
+        self.path = path
+        self.max_vars = max_vars or SQLITE_MAX_VARIABLE_NUMBER
         if path == ":memory:":
             self.conn = sqlite3.connect(":memory:")
         else:
@@ -51,7 +52,7 @@ class SqliteDB:
         return Table(self, table_name)
 
     def __repr__(self):
-        return "<Database {}>".format(self.conn)
+        return "<Database: {}>".format(self.path)
 
     def table_names(self):
         sql = "SELECT name FROM sqlite_master WHERE type = 'table';"
