@@ -49,6 +49,7 @@ class SqliteDB:
             self.conn = sqlite3.connect(str(path), isolation_level=None)
         self.conn.execute("PRAGMA synchronous = OFF;")
         self.conn.execute("PRAGMA journal_mode = MEMORY;")
+        self.conn.execute("PRAGMA locking_mode = EXCLUSIVE;")
 
     def __getitem__(self, table_name):
         return Table(self, table_name)
