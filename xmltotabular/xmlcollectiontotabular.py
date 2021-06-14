@@ -3,12 +3,18 @@ import logging
 import sys
 from collections import defaultdict
 from pathlib import Path
-from pprint import pformat
 
 import yaml
 
 from .sqlite_db import SqliteDB
-from .utils import expand_paths, colored, Pool, cpu_count, yield_xml_doc
+from .utils import (
+    expand_paths,
+    colored,
+    Pool,
+    cpu_count,
+    yield_xml_doc,
+    get_fieldnames_from_config,
+)
 from .xmldoctotabular import XmlDocToTabular
 
 
@@ -22,7 +28,12 @@ class XmlCollectionToTabular:
         dtd_path=None,
         preprocess_doc=None,
         log_level=logging.INFO,
-        **kwargs,
+        recurse=True,
+        validate=False,
+        check_doctype=False,
+        processes=None,
+        continue_on_error=False,
+        sqlite_max_vars=None,
     ):
 
         self.logger = logging.getLogger(__name__)
@@ -38,7 +49,7 @@ class XmlCollectionToTabular:
                     self.xml_files.append(path)
                 elif path.is_dir():
                     self.xml_files.extend(
-                        path.glob(f'{"**/" if kwargs["recurse"] else ""}*.[xX][mM][lL]')
+                        path.glob(f'{"**/" if recurse else ""}*.[xX][mM][lL]')
                     )
                 else:
                     self.logger.fatal("specified input is invalid")
@@ -49,9 +60,14 @@ class XmlCollectionToTabular:
             self.config = yaml.safe_load(open(config))
 
         self.output_type = output_type
-        self.output_path = Path(output_path).resolve()
+        self.output_path = output_path
 
-        if self.output_type == "sqlite":
+        if self.output_type == "sqlite" and self.output_path == ":memory:":
+            self.init_sqlite_db(self.output_path)
+
+        elif self.output_type == "sqlite":
+            self.output_path = Path(self.output_path).resolve()
+
             if self.output_path.is_dir():
                 self.output_path = (self.output_path / "db.sqlite").resolve()
 
@@ -70,17 +86,20 @@ class XmlCollectionToTabular:
                 self.output_path.parent.mkdir(parents=True, exist_ok=True)
 
             self.init_sqlite_db(self.output_path)
+
         else:
+            self.output_path = Path(self.output_path).resolve()
             self.output_path.mkdir(parents=True, exist_ok=True)
 
         self.dtd_path = dtd_path
         self.preprocess_doc = preprocess_doc
-        self.validate = kwargs["validate"]
-        self.processes = kwargs["processes"]
-        self.continue_on_error = kwargs["continue_on_error"]
+        self.validate = validate
+        self.processes = processes
+        self.continue_on_error = continue_on_error
 
-        self.fieldnames = self.get_fieldnames(self.config)
-        self.set_root_config()
+        self.fieldnames = get_fieldnames_from_config(self.config)
+        if check_doctype:
+            self.set_root_config()
 
     def set_root_config(self):
         if "xml_root" not in self.config:
@@ -99,7 +118,7 @@ class XmlCollectionToTabular:
         self.db.execute("pragma synchronous=off;")
         self.db.execute("pragma journal_mode=memory;")
 
-        for tablename, fieldnames in self.get_fieldnames(self.config).items():
+        for tablename, fieldnames in get_fieldnames_from_config(self.config).items():
             if tablename in self.db.table_names():
                 for fieldname in fieldnames:
                     if fieldname not in self.db[tablename].columns:
@@ -127,7 +146,9 @@ class XmlCollectionToTabular:
 
         for input_file in self.xml_files:
 
-            self.logger.warn(colored("Processing %s...", "green"), input_file.resolve())
+            self.logger.warning(
+                colored("Processing %s...", "green"), input_file.resolve()
+            )
 
             processes = self.processes or cpu_count() - 1 or 1
             # chunk sizes greater than 1 result in duplicate returns because the results
@@ -155,7 +176,7 @@ class XmlCollectionToTabular:
 
             if all_tables:
                 self.logger.info(colored("...%d records processed!", "green"), i + 1)
-                self.flush_to_disk(all_tables)
+                self.write_tables(all_tables)
             else:
                 self.logger.warning(
                     colored("No records found! (config file error?)", "red")
@@ -164,71 +185,12 @@ class XmlCollectionToTabular:
         if self.output_type == "sqlite" and self.output_path == ":memory:":
             return self.db
 
-    def flush_to_disk(self, tables):
+    def write_tables(self, tables):
         if self.output_type == "csv":
             self.write_csv_files(tables)
 
         if self.output_type == "sqlite":
             self.write_sqlitedb(tables)
-
-    @staticmethod
-    def get_fieldnames(full_config):
-        # On python >=3.7, dictionaries maintain key order, so fields are guaranteed to
-        #  be returned in the order in which they appear in the config file.  To
-        #  guarantee this on versions of python <3.7 (insofar as it matters),
-        #  collections.OrderedDict would have to be used here.
-
-        fieldnames = defaultdict(list)
-
-        def add_fieldnames(config, _fieldnames, parent_entity=None):
-            if isinstance(config, str):
-                if ":" in config:
-                    _fieldnames.append(config.split(":")[0])
-                    return
-                _fieldnames.append(config)
-                return
-
-            if "<fieldname>" in config:
-                _fieldnames.append(config["<fieldname>"])
-                return
-
-            if "<entity>" in config:
-                entity = config["<entity>"]
-                _fieldnames = []
-                if "<primary_key>" in config or parent_entity:
-                    _fieldnames.append("id")
-                if parent_entity:
-                    _fieldnames.append(f"{parent_entity}_id")
-                if "<filename_field>" in config:
-                    _fieldnames.append(config["<filename_field>"])
-                for subconfig in config["<fields>"].values():
-                    add_fieldnames(subconfig, _fieldnames, entity)
-                # different keys (XPath expressions) may be appending rows to the same
-                #  table(s), so we're appending to lists of fieldnames here.
-                fieldnames[entity] = list(
-                    dict.fromkeys(fieldnames[entity] + _fieldnames).keys()
-                )
-                return
-
-            # We may have multiple configurations for this key (XPath expression)
-            if isinstance(config, list):
-                for subconfig in config:
-                    add_fieldnames(subconfig, _fieldnames, parent_entity)
-                return
-
-            raise LookupError(
-                "Invalid configuration:"
-                + "\n "
-                + "\n ".join(pformat(config).split("\n"))
-            )
-
-        for key, config in full_config.items():
-            if key.startswith("<"):
-                # skip keyword instructions
-                continue
-            add_fieldnames(config, [])
-
-        return fieldnames
 
     def write_csv_files(self, tables):
 

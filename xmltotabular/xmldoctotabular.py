@@ -106,7 +106,7 @@ class XmlDocToTabular:
 
             except WrongDoctypeException as exc:
                 self.logger.debug(
-                    "%s%s",
+                    "%s\n%s",
                     colored(
                         "Unexpected XML document"
                         + (f" ending at line {linenum}" if linenum else "")
@@ -120,7 +120,7 @@ class XmlDocToTabular:
 
             except NoDoctypeException:
                 self.logger.debug(
-                    "%s%s",
+                    "%s\n%s",
                     colored(
                         "Document"
                         + (f" ending at line {linenum}" if linenum else "")

@@ -1,5 +1,7 @@
 import sys
+from collections import defaultdict
 from pathlib import Path
+from pprint import pformat
 
 from lxml import etree
 
@@ -23,12 +25,13 @@ try:
 except (AssertionError, ImportError):
 
     def colored(text, *args, **kwargs):
-        """ Dummy function in case termcolor is not available. """
+        """Dummy function to pass text through without escape codes if stdout is not a
+        TTY or termcolor is not available."""
         return text
 
 
 def expand_paths(path_expr):
-
+    """Given a path expression, return a list of paths."""
     path = Path(path_expr).expanduser()
     if path.is_file():
         return [path]
@@ -38,6 +41,8 @@ def expand_paths(path_expr):
 
 
 class DTDResolver(etree.Resolver):
+    """A DTDResolver class which resolves DTDs relative to a supplied base path."""
+
     def __init__(self, dtd_path):
         self.dtd_path = Path(dtd_path)
 
@@ -59,9 +64,11 @@ class NoDoctypeException(Exception):
 
 
 def test_doctype(doc, expected_doctype):
+    """Test an XML document (passed as a string) for a DOCTYPE declaration that matches
+    `expected_doctype`."""
     for line in doc.split("\n"):
         if line.startswith(f"<!DOCTYPE {expected_doctype}"):
-            return
+            return True
         elif line.startswith("<!DOCTYPE "):
             raise WrongDoctypeException(line)
 
@@ -69,6 +76,9 @@ def test_doctype(doc, expected_doctype):
 
 
 def yield_xml_doc(filepath):
+    """Given a path to a file containing one or more XML documents, for each document
+    yield a dictionary containing a document, the filename, and the ending line number
+    at which the document is found."""
     filename = filepath.resolve().name
     xml_doc = []
 
@@ -101,3 +111,63 @@ def yield_xml_doc(filepath):
             "linenum": i - len(xml_doc),
             "doc": "".join(xml_doc),
         }
+
+
+def get_fieldnames_from_config(full_config):
+    """Parse a config object and return a dictionary where keys are table names and
+    values are lists of field names."""
+
+    # On python >=3.7, dictionaries maintain key order, so fields are guaranteed to
+    #  be returned in the order in which they appear in the config file.  To
+    #  guarantee this on versions of python <3.7 (insofar as it matters),
+    #  collections.OrderedDict would have to be used here.
+
+    fieldnames = defaultdict(list)
+
+    def add_fieldnames(config, _fieldnames, parent_entity=None):
+        if isinstance(config, str):
+            if ":" in config:
+                _fieldnames.append(config.split(":")[0])
+                return
+            _fieldnames.append(config)
+            return
+
+        if "<fieldname>" in config:
+            _fieldnames.append(config["<fieldname>"])
+            return
+
+        if "<entity>" in config:
+            entity = config["<entity>"]
+            _fieldnames = []
+            if "<primary_key>" in config or parent_entity:
+                _fieldnames.append("id")
+            if parent_entity:
+                _fieldnames.append(f"{parent_entity}_id")
+            if "<filename_field>" in config:
+                _fieldnames.append(config["<filename_field>"])
+            for subconfig in config["<fields>"].values():
+                add_fieldnames(subconfig, _fieldnames, entity)
+            # different keys (XPath expressions) may be appending rows to the same
+            #  table(s), so we're appending to lists of fieldnames here.
+            fieldnames[entity] = list(
+                dict.fromkeys(fieldnames[entity] + _fieldnames).keys()
+            )
+            return
+
+        # We may have multiple configurations for this key (XPath expression)
+        if isinstance(config, list):
+            for subconfig in config:
+                add_fieldnames(subconfig, _fieldnames, parent_entity)
+            return
+
+        raise LookupError(
+            "Invalid configuration:" + "\n " + "\n ".join(pformat(config).split("\n"))
+        )
+
+    for key, config in full_config.items():
+        if key.startswith("<"):
+            # skip keyword instructions
+            continue
+        add_fieldnames(config, [])
+
+    return fieldnames
