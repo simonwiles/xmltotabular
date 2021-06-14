@@ -115,9 +115,6 @@ class XmlCollectionToTabular:
     def init_sqlite_db(self, output_path):
         self.db = SqliteDB(output_path)
 
-        self.db.execute("pragma synchronous=off;")
-        self.db.execute("pragma journal_mode=memory;")
-
         for tablename, fieldnames in get_fieldnames_from_config(self.config).items():
             if tablename in self.db.table_names():
                 for fieldname in fieldnames:
