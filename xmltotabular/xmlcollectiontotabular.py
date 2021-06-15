@@ -63,7 +63,7 @@ class XmlCollectionToTabular:
         self.output_path = output_path
 
         if self.output_type == "sqlite" and self.output_path == ":memory:":
-            self.init_sqlite_db(self.output_path)
+            self.init_sqlite_db(self.output_path, max_vars=sqlite_max_vars)
 
         elif self.output_type == "sqlite":
             self.output_path = Path(self.output_path).resolve()
@@ -85,7 +85,7 @@ class XmlCollectionToTabular:
             else:
                 self.output_path.parent.mkdir(parents=True, exist_ok=True)
 
-            self.init_sqlite_db(self.output_path)
+            self.init_sqlite_db(self.output_path, max_vars=sqlite_max_vars)
 
         else:
             self.output_path = Path(self.output_path).resolve()
@@ -112,8 +112,8 @@ class XmlCollectionToTabular:
                 self.config["xml_root"],
             )
 
-    def init_sqlite_db(self, output_path):
-        self.db = SqliteDB(output_path)
+    def init_sqlite_db(self, output_path, max_vars):
+        self.db = SqliteDB(output_path, max_vars=max_vars)
 
         for tablename, fieldnames in get_fieldnames_from_config(self.config).items():
             if tablename in self.db.table_names():
