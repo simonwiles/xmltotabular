@@ -128,15 +128,13 @@ def get_fieldnames_from_config(full_config):
         if isinstance(config, str):
             if ":" in config:
                 _fieldnames.append(config.split(":")[0])
-                return
-            _fieldnames.append(config)
-            return
+            else:
+                _fieldnames.append(config)
 
-        if "<fieldname>" in config:
+        elif "<fieldname>" in config:
             _fieldnames.append(config["<fieldname>"])
-            return
 
-        if "<entity>" in config:
+        elif "<entity>" in config:
             entity = config["<entity>"]
             _fieldnames = []
             if "<primary_key>" in config or parent_entity:
@@ -152,21 +150,22 @@ def get_fieldnames_from_config(full_config):
             fieldnames[entity] = list(
                 dict.fromkeys(fieldnames[entity] + _fieldnames).keys()
             )
-            return
 
         # We may have multiple configurations for this key (XPath expression)
-        if isinstance(config, list):
+        elif isinstance(config, list):
             for subconfig in config:
                 add_fieldnames(subconfig, _fieldnames, parent_entity)
-            return
 
-        raise LookupError(
-            "Invalid configuration:" + "\n " + "\n ".join(pformat(config).split("\n"))
-        )
+        else:
+            raise LookupError(
+                "Invalid configuration:"
+                + "\n "
+                + "\n ".join(pformat(config).split("\n"))
+            )
 
     for key, config in full_config.items():
+        # skip keyword instructions
         if key.startswith("<"):
-            # skip keyword instructions
             continue
         add_fieldnames(config, [])
 
