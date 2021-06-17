@@ -245,9 +245,12 @@ class XmlDocToTabular:
             # config is extra configuration for a field on this table/file
             if "<joiner>" in config:
                 if elems:
-                    record[config["<fieldname>"]] = config["<joiner>"].join(
-                        [self.get_text(elem) for elem in elems]
-                    )
+                    if record.get(config["<fieldname>"]):
+                        record[config["<fieldname>"]] += config[
+                            "<joiner>"
+                        ] + self.get_text(elems[0])
+                    else:
+                        record[config["<fieldname>"]] = self.get_text(elems[0])
                 return
 
             if "<enum_map>" in config:
