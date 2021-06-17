@@ -77,7 +77,7 @@ class XmlCollectionToTabular:
             if self.output_path.exists():
                 self.logger.warning(
                     colored(
-                        "Sqlite database %s exists; records will be appended.",
+                        "Database %s exists; tables and/or rows will be appended.",
                         "yellow",
                     ),
                     self.output_path,
@@ -171,12 +171,12 @@ class XmlCollectionToTabular:
             pool.close()
             pool.join()
 
+            self.logger.info(colored("...%d documents processed!", "green"), i + 1)
             if all_tables:
-                self.logger.info(colored("...%d records processed!", "green"), i + 1)
                 self.write_tables(all_tables)
             else:
                 self.logger.warning(
-                    colored("No records found! (config file error?)", "red")
+                    colored("No rows found! (config file error?)", "red")
                 )
 
         if self.output_type == "sqlite" and self.output_path == ":memory:":
@@ -202,7 +202,7 @@ class XmlCollectionToTabular:
                 self.logger.debug(
                     "%s",
                     colored(
-                        f"CSV file {output_file} exists; records will be appended.",
+                        f"CSV file {output_file} exists; rows will be appended.",
                         "yellow",
                     ),
                 )
@@ -218,11 +218,11 @@ class XmlCollectionToTabular:
                     writer.writerows(rows)
 
     def write_sqlitedb(self, tables):
-        self.logger.info(colored("Writing records to %s ...", "green"), self.output_path)
+        self.logger.info(colored("Writing tables to %s ...", "green"), self.output_path)
         self.db.conn.execute("begin exclusive;")
         for tablename, rows in tables.items():
             self.logger.info(
-                colored("Writing %d records to `%s`...", "magenta"),
+                colored("Writing %d rows to `%s`...", "magenta"),
                 len(rows),
                 tablename,
             )
