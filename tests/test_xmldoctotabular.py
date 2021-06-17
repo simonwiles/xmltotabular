@@ -27,3 +27,63 @@ def test_single_simple_entity_per_doc(simple_config):
             }
         ]
     }
+
+
+def test_multiple_simple_entities_per_doc(simple_config):
+    xml = """\
+<?xml version="1.0" encoding="UTF-8"?>
+<albums>
+  <album>
+    <name>Five Leaves Left</name>
+    <artist>Nick Drake</artist>
+    <released>1969</released>
+    <label>Island</label>
+    <genre>Folk</genre>
+  </album>
+  <album>
+    <name>Bryter Layter</name>
+    <artist>Nick Drake</artist>
+    <released>1971</released>
+    <label>Island</label>
+    <genre>Folk</genre>
+  </album>
+  <album>
+    <name>Pink Moon</name>
+    <artist>Nick Drake</artist>
+    <released>1972</released>
+    <label>Island</label>
+    <genre>Folk</genre>
+  </album>
+</albums>
+    """
+
+    docTransformer = XmlDocToTabular(simple_config)
+
+    assert docTransformer.process_doc(xml) == {
+        "album": [
+            {
+                "id": "None_0",
+                "name": "Five Leaves Left",
+                "artist": "Nick Drake",
+                "released": "1969",
+                "label": "Island",
+                "genre": "Folk",
+            },
+            {
+                "id": "None_1",
+                "name": "Bryter Layter",
+                "artist": "Nick Drake",
+                "released": "1971",
+                "label": "Island",
+                "genre": "Folk",
+            },
+            {
+                "id": "None_2",
+                "name": "Pink Moon",
+                "artist": "Nick Drake",
+                "released": "1972",
+                "label": "Island",
+                "genre": "Folk",
+            },
+        ]
+    }
