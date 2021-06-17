@@ -55,7 +55,7 @@ class XmlDocToTabular:
 
     def get_pk(self, tree, config):
         def get_pk_component(expression):
-            elems = tree.xpath(f"./{expression}")
+            elems = tree.xpath(expression)
             assert (
                 len(elems) == 1
             ), f"{len(elems)} elements found for <primary_key> component {expression}"
@@ -203,13 +203,19 @@ class XmlDocToTabular:
         self, tree, path, config, filename, record, parent_entity=None, parent_pk=None
     ):
         try:
-            elems = [tree.getroot()]
+            tree = tree.getroot()
         except AttributeError:
-            elems = tree.xpath("./" + path)
+            pass
 
-        self.process_field(
-            elems, tree, path, config, filename, record, parent_entity, parent_pk
-        )
+        if path == tree.tag:
+            elems = [tree]
+        else:
+            elems = tree.xpath(path)
+
+        for elem in elems:
+            self.process_field(
+                [elem], tree, path, config, filename, record, parent_entity, parent_pk
+            )
 
     def process_field(
         self,
@@ -292,7 +298,7 @@ class XmlDocToTabular:
         for elem in elems:
             record = {}
 
-            pk = self.get_pk(tree, config)
+            pk = self.get_pk(elem, config)
             if pk:
                 record["id"] = pk
             else:
