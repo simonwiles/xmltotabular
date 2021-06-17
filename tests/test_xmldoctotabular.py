@@ -1,7 +1,7 @@
 from xmltotabular import XmlDocToTabular
 
 
-def test_simple_transform(simple_config, simple_data):
+def test_single_simple_entity_per_doc(simple_config):
     xml = """\
 <?xml version="1.0" encoding="UTF-8"?>
 <album>
@@ -15,4 +15,15 @@ def test_simple_transform(simple_config, simple_data):
 
     docTransformer = XmlDocToTabular(simple_config)
 
-    assert docTransformer.process_doc(xml) == simple_data
+    assert docTransformer.process_doc(xml) == {
+        "album": [
+            {
+                "id": "None_0",
+                "name": "Five Leaves Left",
+                "artist": "Nick Drake",
+                "released": "1969",
+                "label": "Island",
+                "genre": "Folk",
+            }
+        ]
+    }

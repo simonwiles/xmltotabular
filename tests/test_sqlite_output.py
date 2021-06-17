@@ -11,6 +11,36 @@ from xmltotabular.sqlite_db import (
 from xmltotabular.utils import get_fieldnames_from_config
 
 
+PARSED_DATA = {
+    "album": [
+        {
+            "id": "None_0",
+            "name": "Five Leaves Left",
+            "artist": "Nick Drake",
+            "released": "1969",
+            "label": "Island",
+            "genre": "Folk",
+        },
+        {
+            "id": "None_1",
+            "name": "Bryter Layter",
+            "artist": "Nick Drake",
+            "released": "1971",
+            "label": "Island",
+            "genre": "Folk",
+        },
+        {
+            "id": "None_2",
+            "name": "Pink Moon",
+            "artist": "Nick Drake",
+            "released": "1972",
+            "label": "Island",
+            "genre": "Folk",
+        },
+    ]
+}
+
+
 def normalize_schema(schema):
     """Normalize whitespace in SQL statements returned by SqliteDB[table].schema
     for convenient comparison."""
@@ -112,18 +142,22 @@ def test_table_creation_additional_fields(empty_db, simple_config):
     assert normalize_schema(db["album"].schema) == normalize_schema(expected_schema)
 
 
-def test_simple_data_insertion(empty_db, simple_config, simple_data):
+def test_simple_data_insertion(empty_db, simple_config):
     db = empty_db
 
     for tablename, fieldnames in get_fieldnames_from_config(simple_config).items():
         db[tablename].create({fieldname: str for fieldname in fieldnames})
 
-    for tablename, rows in simple_data.items():
+    for tablename, rows in PARSED_DATA.items():
         db[tablename].insert_all(rows)
 
     selected = db.execute("SELECT * FROM album;").fetchall()
 
-    assert selected == [("Five Leaves Left", "Nick Drake", "1969", "Island", "Folk")]
+    assert selected == [
+        ("Five Leaves Left", "Nick Drake", "1969", "Island", "Folk"),
+        ("Bryter Layter", "Nick Drake", "1971", "Island", "Folk"),
+        ("Pink Moon", "Nick Drake", "1972", "Island", "Folk"),
+    ]
 
 
 def test_multiple_rows_insertion(empty_db):
@@ -149,7 +183,7 @@ def test_multiple_rows_insertion(empty_db):
     ]
 
 
-def test_writing_to_filesystem(simple_config, simple_data):
+def test_writing_to_filesystem(simple_config):
     dirpath = tempfile.mkdtemp()
     db_path = Path(dirpath) / "test_db.sqlite"
 
@@ -158,12 +192,16 @@ def test_writing_to_filesystem(simple_config, simple_data):
     for tablename, fieldnames in get_fieldnames_from_config(simple_config).items():
         db[tablename].create({fieldname: str for fieldname in fieldnames})
 
-    for tablename, rows in simple_data.items():
+    for tablename, rows in PARSED_DATA.items():
         db[tablename].insert_all(rows)
 
     selected = db.execute("SELECT * FROM album;").fetchall()
 
-    assert selected == [("Five Leaves Left", "Nick Drake", "1969", "Island", "Folk")]
+    assert selected == [
+        ("Five Leaves Left", "Nick Drake", "1969", "Island", "Folk"),
+        ("Bryter Layter", "Nick Drake", "1971", "Island", "Folk"),
+        ("Pink Moon", "Nick Drake", "1972", "Island", "Folk"),
+    ]
 
 
 @pytest.mark.parametrize(
