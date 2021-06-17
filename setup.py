@@ -1,16 +1,18 @@
 from setuptools import setup, find_packages
 
-VERSION = "0.7.1"
+version = {}
+with open("xmltotabular/version.py", "r") as _fh:
+    exec(_fh.read(), version)
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
+with open("README.md", "r") as _fh:
+    long_description = _fh.read()
 
 setup(
     name="xmltotabular",
     description="Covert XML to tabular data according to YAML configuration",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    version=VERSION,
+    version=version["__version__"],
     author="Simon Wiles",
     author_email="simonjwiles@gmail.com",
     url="https://github.com/simonwiles/xmltotabular",
