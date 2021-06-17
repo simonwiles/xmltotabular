@@ -262,7 +262,7 @@ class XmlDocToTabular:
                     record[config["<fieldname>"]] = config["<enum_type>"]
                 return
 
-            # just a mapping to a fieldname string
+            # just an explicit mapping to a fieldname string
             if len(config) == 1:
                 self.add_string(path, elems, record, config["<fieldname>"])
                 return
