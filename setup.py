@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 version = {}
-with open("xmltotabular/version.py", "r") as _fh:
+with open("xmltotabular/_version.py", "r") as _fh:
     exec(_fh.read(), version)
 
 with open("README.md", "r") as _fh:
