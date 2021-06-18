@@ -1,11 +1,12 @@
 import logging
+import sqlite3
 
 from xmltotabular import XmlCollectionToTabular
 
 
-def test_simple_transform(simple_config):
+def test_multiple_docs_in_one_file(simple_config):
 
-    xml_path = "tests/test_xml/multiple_simple_docs.xml"
+    xml_path = "tests/test_xml_files/multiple_simple_docs.xml"
 
     collectionTransformer = XmlCollectionToTabular(
         xml_path,
@@ -19,11 +20,30 @@ def test_simple_transform(simple_config):
     )
 
     db = collectionTransformer.convert()
+    db.conn.row_factory = sqlite3.Row
 
-    selected = db.execute("SELECT * FROM album;").fetchall()
+    result = [dict(row) for row in db.execute("SELECT * FROM album;").fetchall()]
 
-    assert selected == [
-        ("Five Leaves Left", "Nick Drake", "1969", "Island", "Folk"),
-        ("Bryter Layter", "Nick Drake", "1971", "Island", "Folk"),
-        ("Pink Moon", "Nick Drake", "1972", "Island", "Folk"),
+    assert result == [
+        {
+            "artist": "Nick Drake",
+            "genre": "Folk",
+            "label": "Island",
+            "name": "Five Leaves Left",
+            "released": "1969",
+        },
+        {
+            "artist": "Nick Drake",
+            "genre": "Folk",
+            "label": "Island",
+            "name": "Bryter Layter",
+            "released": "1971",
+        },
+        {
+            "artist": "Nick Drake",
+            "genre": "Folk",
+            "label": "Island",
+            "name": "Pink Moon",
+            "released": "1972",
+        },
     ]
