@@ -209,13 +209,12 @@ class XmlDocToTabular:
 
         for result in results:
             self.process_field(
-                result, tree, path, config, filename, record, parent_entity, parent_pk
+                result, path, config, filename, record, parent_entity, parent_pk
             )
 
     def process_field(
         self,
         result,
-        tree,
         path,
         config,
         filename,
@@ -230,9 +229,7 @@ class XmlDocToTabular:
 
         if "<entity>" in config:
             # config is a new entity definition (i.e. a new record on a new table/file)
-            self.process_new_entity(
-                tree, result, config, filename, parent_entity, parent_pk
-            )
+            self.process_new_entity(result, config, filename, parent_entity, parent_pk)
             return
 
         if "<fieldname>" in config:
@@ -266,7 +263,6 @@ class XmlDocToTabular:
             for subconfig in config:
                 self.process_field(
                     result,
-                    tree,
                     path,
                     subconfig,
                     filename,
@@ -283,7 +279,7 @@ class XmlDocToTabular:
         )
 
     def process_new_entity(
-        self, tree, elem, config, filename, parent_entity=None, parent_pk=None
+        self, elem, config, filename, parent_entity=None, parent_pk=None
     ):
         """Process a subtree of the xml as a new entity type, creating a new record in a
         new output table/file.
