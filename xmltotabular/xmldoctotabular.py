@@ -55,7 +55,7 @@ class XmlDocToTabular:
 
     def get_pk(self, tree, config):
         def get_pk_component(expression):
-            elems = tree.xpath(f"./{expression}")
+            elems = tree.xpath(expression)
             assert (
                 len(elems) == 1
             ), f"{len(elems)} elements found for <primary_key> component {expression}"
@@ -70,22 +70,6 @@ class XmlDocToTabular:
             )
 
         return None
-
-    def add_string(self, path, elems, record, fieldname):
-        try:
-            assert len(elems) == 1
-        except AssertionError as exc:
-            exc.msg = (
-                f"Multiple elements found for {path}! "
-                + "Should your config file include a joiner, or new entity "
-                + "definition?"
-                + "\n\n- "
-                + "\n- ".join(self.get_text(el) for el in elems)
-            )
-            raise
-
-        # we've only one elem, and it's a simple mapping to a fieldname
-        record[fieldname] = self.get_text(elems[0])
 
     def process_doc_from_pool(self, payload):
         """Unpack a tuple returned by yield_xml_doc().
@@ -203,18 +187,34 @@ class XmlDocToTabular:
         self, tree, path, config, filename, record, parent_entity=None, parent_pk=None
     ):
         try:
-            elems = [tree.getroot()]
+            tree = tree.getroot()
         except AttributeError:
-            elems = tree.xpath("./" + path)
+            pass
 
-        self.process_field(
-            elems, tree, path, config, filename, record, parent_entity, parent_pk
-        )
+        if path == tree.tag:
+            results = [tree]
+        else:
+            results = tree.xpath(path)
+            if len(results) > 1 and not any(
+                key in config
+                for key in ("<entity>", "<joiner>", "<enum_map>", "<enum_type>")
+            ):
+                self.logger.warning(
+                    f"Multiple elements found for {path}!  Only the last will be kept! "
+                    + "Should your config file include a joiner, or new entity "
+                    + "definition?"
+                    + "\n\n- "
+                    + "\n- ".join(self.get_text(el) for el in results)
+                )
+
+        for result in results:
+            self.process_field(
+                result, path, config, filename, record, parent_entity, parent_pk
+            )
 
     def process_field(
         self,
-        elems,
-        tree,
+        result,
         path,
         config,
         filename,
@@ -224,49 +224,45 @@ class XmlDocToTabular:
     ):
 
         if isinstance(config, str):
-            if elems:
-                self.add_string(path, elems, record, config)
+            record[config] = self.get_text(result)
             return
 
         if "<entity>" in config:
             # config is a new entity definition (i.e. a new record on a new table/file)
-            self.process_new_entity(
-                tree, elems, config, filename, parent_entity, parent_pk
-            )
+            self.process_new_entity(result, config, filename, parent_entity, parent_pk)
             return
 
         if "<fieldname>" in config:
             # config is extra configuration for a field on this table/file
             if "<joiner>" in config:
-                if elems:
-                    record[config["<fieldname>"]] = config["<joiner>"].join(
-                        [self.get_text(elem) for elem in elems]
+                if record.get(config["<fieldname>"]):
+                    record[config["<fieldname>"]] += config["<joiner>"] + self.get_text(
+                        result
                     )
+                else:
+                    record[config["<fieldname>"]] = self.get_text(result)
                 return
 
             if "<enum_map>" in config:
-                if elems:
-                    record[config["<fieldname>"]] = config["<enum_map>"].get(
-                        self.get_text(elems[0])
-                    )
+                record[config["<fieldname>"]] = config["<enum_map>"].get(
+                    self.get_text(result)
+                )
                 return
 
             if "<enum_type>" in config:
-                if elems:
-                    record[config["<fieldname>"]] = config["<enum_type>"]
+                record[config["<fieldname>"]] = config["<enum_type>"]
                 return
 
-            # just a mapping to a fieldname string
+            # just an explicit mapping to a fieldname string
             if len(config) == 1:
-                self.add_string(path, elems, record, config["<fieldname>"])
+                record[config["<fieldname>"]] = self.get_text(result)
                 return
 
         # We may have multiple configurations for this key (XPath expression)
         if isinstance(config, list):
             for subconfig in config:
                 self.process_field(
-                    elems,
-                    tree,
+                    result,
                     path,
                     subconfig,
                     filename,
@@ -283,27 +279,26 @@ class XmlDocToTabular:
         )
 
     def process_new_entity(
-        self, tree, elems, config, filename, parent_entity=None, parent_pk=None
+        self, elem, config, filename, parent_entity=None, parent_pk=None
     ):
         """Process a subtree of the xml as a new entity type, creating a new record in a
         new output table/file.
         """
         entity = config["<entity>"]
-        for elem in elems:
-            record = {}
+        record = {}
 
-            pk = self.get_pk(tree, config)
-            if pk:
-                record["id"] = pk
-            else:
-                record["id"] = f"{parent_pk}_{self.table_pk_idx[entity][parent_pk]}"
-                self.table_pk_idx[entity][parent_pk] += 1
+        pk = self.get_pk(elem, config)
+        if pk:
+            record["id"] = pk
+        else:
+            record["id"] = f"{parent_pk}_{self.table_pk_idx[entity][parent_pk]}"
+            self.table_pk_idx[entity][parent_pk] += 1
 
-            if parent_pk:
-                record[f"{parent_entity}_id"] = parent_pk
-            if "<filename_field>" in config:
-                record[config["<filename_field>"]] = filename
-            for subpath, subconfig in config["<fields>"].items():
-                self.process_path(elem, subpath, subconfig, filename, record, entity, pk)
+        if parent_pk:
+            record[f"{parent_entity}_id"] = parent_pk
+        if "<filename_field>" in config:
+            record[config["<filename_field>"]] = filename
+        for subpath, subconfig in config["<fields>"].items():
+            self.process_path(elem, subpath, subconfig, filename, record, entity, pk)
 
-            self.tables[entity].append(record)
+        self.tables[entity].append(record)

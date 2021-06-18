@@ -27,22 +27,6 @@ def simple_config():
 
 
 @pytest.fixture
-def simple_data():
-    return {
-        "album": [
-            {
-                "id": "None_0",
-                "name": "Five Leaves Left",
-                "artist": "Nick Drake",
-                "released": "1969",
-                "label": "Island",
-                "genre": "Folk",
-            }
-        ]
-    }
-
-
-@pytest.fixture
 def debug_logger():
     logger = logging.getLogger("test")
     logger.setLevel(logging.DEBUG)

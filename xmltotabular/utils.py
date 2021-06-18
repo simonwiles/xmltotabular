@@ -126,9 +126,6 @@ def get_fieldnames_from_config(full_config):
 
     def add_fieldnames(config, _fieldnames, parent_entity=None):
         if isinstance(config, str):
-            if ":" in config:
-                _fieldnames.append(config.split(":")[0])
-                return
             _fieldnames.append(config)
             return
 
