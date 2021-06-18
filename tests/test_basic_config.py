@@ -2,7 +2,96 @@ import logging
 import sqlite3
 import yaml
 
-from xmltotabular import XmlCollectionToTabular
+from xmltotabular import XmlDocToTabular, XmlCollectionToTabular
+
+
+def test_primary_key():
+
+    config = yaml.safe_load(
+        r"""
+        album:
+          <entity>: album
+          <primary_key>: name
+          <fields>:
+            name: name
+            artist: artist
+            released: released
+            label: label
+            genre: genre
+        """
+    )
+
+    xml = """\
+<?xml version="1.0" encoding="UTF-8"?>
+<album>
+  <name>Five Leaves Left</name>
+  <artist>Nick Drake</artist>
+  <released>1969</released>
+  <label>Island</label>
+  <genre>Folk</genre>
+</album>
+    """
+
+    docTransformer = XmlDocToTabular(config)
+
+    assert docTransformer.process_doc(xml) == {
+        "album": [
+            {
+                "id": "Five Leaves Left",
+                "name": "Five Leaves Left",
+                "artist": "Nick Drake",
+                "released": "1969",
+                "label": "Island",
+                "genre": "Folk",
+            }
+        ]
+    }
+
+
+def test_composed_primary_key():
+
+    config = yaml.safe_load(
+        r"""
+        album:
+          <entity>: album
+          <primary_key>:
+            - name
+            - artist
+            - released
+          <fields>:
+            name: name
+            artist: artist
+            released: released
+            label: label
+            genre: genre
+        """
+    )
+
+    xml = """\
+<?xml version="1.0" encoding="UTF-8"?>
+<album>
+  <name>Five Leaves Left</name>
+  <artist>Nick Drake</artist>
+  <released>1969</released>
+  <label>Island</label>
+  <genre>Folk</genre>
+</album>
+    """
+
+    docTransformer = XmlDocToTabular(config)
+
+    assert docTransformer.process_doc(xml) == {
+        "album": [
+            {
+                "id": "Five Leaves Left-Nick Drake-1969",
+                "name": "Five Leaves Left",
+                "artist": "Nick Drake",
+                "released": "1969",
+                "label": "Island",
+                "genre": "Folk",
+            }
+        ]
+    }
 
 
 def test_filename_field():
