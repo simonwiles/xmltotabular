@@ -129,29 +129,34 @@ def test_filename_field():
     db.conn.row_factory = sqlite3.Row
     result = [dict(row) for row in db.execute("SELECT * FROM album;").fetchall()]
 
-    assert result == [
-        {
-            "artist": "Nick Drake",
-            "genre": "Folk",
-            "label": "Island",
-            "name": "Five Leaves Left",
-            "released": "1969",
-            "source-file": "drake_001.xml",
-        },
-        {
-            "artist": "Nick Drake",
-            "genre": "Folk",
-            "label": "Island",
-            "name": "Bryter Layter",
-            "released": "1971",
-            "source-file": "drake_002.xml",
-        },
-        {
-            "artist": "Nick Drake",
-            "genre": "Folk",
-            "label": "Island",
-            "name": "Pink Moon",
-            "released": "1972",
-            "source-file": "drake_003.xml",
-        },
-    ]
+    # Order of row insertion is not guaranteed (because of the file globbing as well
+    # as because of the parallelization).
+    assert all(
+        record in result
+        for record in [
+            {
+                "artist": "Nick Drake",
+                "genre": "Folk",
+                "label": "Island",
+                "name": "Five Leaves Left",
+                "released": "1969",
+                "source-file": "drake_001.xml",
+            },
+            {
+                "artist": "Nick Drake",
+                "genre": "Folk",
+                "label": "Island",
+                "name": "Bryter Layter",
+                "released": "1971",
+                "source-file": "drake_002.xml",
+            },
+            {
+                "artist": "Nick Drake",
+                "genre": "Folk",
+                "label": "Island",
+                "name": "Pink Moon",
+                "released": "1972",
+                "source-file": "drake_003.xml",
+            },
+        ]
+    )
