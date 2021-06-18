@@ -1,3 +1,5 @@
+import yaml
+
 from xmltotabular import XmlDocToTabular
 
 
@@ -58,6 +60,74 @@ def test_multiple_simple_entities_per_doc(simple_config):
     """
 
     docTransformer = XmlDocToTabular(simple_config)
+
+    assert docTransformer.process_doc(xml) == {
+        "album": [
+            {
+                "id": "None_0",
+                "name": "Five Leaves Left",
+                "artist": "Nick Drake",
+                "released": "1969",
+                "label": "Island",
+                "genre": "Folk",
+            },
+            {
+                "id": "None_1",
+                "name": "Bryter Layter",
+                "artist": "Nick Drake",
+                "released": "1971",
+                "label": "Island",
+                "genre": "Folk",
+            },
+            {
+                "id": "None_2",
+                "name": "Pink Moon",
+                "artist": "Nick Drake",
+                "released": "1972",
+                "label": "Island",
+                "genre": "Folk",
+            },
+        ]
+    }
+
+
+def test_attribute_style_xml():
+
+    config = yaml.safe_load(
+        r"""
+        album:
+          <entity>: album
+          <fields>:
+            "@name": name
+            "@artist": artist
+            "@released": released
+            "@label": label
+            "@genre": genre
+        """
+    )
+
+    xml = """\
+<?xml version="1.0" encoding="UTF-8"?>
+<albums>
+  <album name="Five Leaves Left"
+         artist="Nick Drake"
+         released="1969"
+         label="Island"
+         genre="Folk" />
+  <album name="Bryter Layter"
+         artist="Nick Drake"
+         released="1971"
+         label="Island"
+         genre="Folk" />
+  <album name="Pink Moon"
+         artist="Nick Drake"
+         released="1972"
+         label="Island"
+         genre="Folk" />
+</albums>
+    """
+
+    docTransformer = XmlDocToTabular(config)
 
     assert docTransformer.process_doc(xml) == {
         "album": [
