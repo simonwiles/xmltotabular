@@ -124,7 +124,7 @@ class XmlDocToTabular:
         except LookupError as exc:
             self.logger.warning(exc.args[0])
             if not self.continue_on_error:
-                raise SystemExit()
+                raise SystemExit() from None
 
         except etree.XMLSyntaxError as exc:
             self.logger.warning(
@@ -140,7 +140,7 @@ class XmlDocToTabular:
             self.logger.debug(doc)
 
             if not self.continue_on_error:
-                raise SystemExit()
+                raise SystemExit() from None
 
         except AssertionError as exc:
             pk = self.get_pk(self.parse_tree(doc), next(iter(self.config.values())))
@@ -159,7 +159,7 @@ class XmlDocToTabular:
             self.logger.debug(doc)
 
             if not self.continue_on_error:
-                raise SystemExit()
+                raise SystemExit() from None
 
         return self.tables
 
