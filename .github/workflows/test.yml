@@ -30,7 +30,7 @@ jobs:
           python -m pip install pipenv
           pipenv install --dev
       - name: Linting and static analysis
-        uses: pre-commit/action@v2.0.0
+        uses: simonwiles/precommit-action@v2.0.4
       - name: Test with pytest
         run: |
           pipenv run pytest
