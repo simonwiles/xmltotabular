@@ -1,5 +1,5 @@
 [flake8]
-# E203  whitespace before ‘:’ (see: https://black.readthedocs.io/en/stable/the_black_code_style.html#slices)
+# E203  whitespace before ‘:’ (see: https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html#slices)
 # W503  line break before binary operator
 ignore = E203, W503
 max-line-length = 89
