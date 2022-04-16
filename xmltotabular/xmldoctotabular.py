@@ -127,6 +127,7 @@ class XmlDocToTabular:
                 self.ns_map = {
                     k if k is not None else "_": v for k, v in tree.nsmap.items()
                 }
+                self.ns_map_reversed = {v: k for k, v in self.ns_map.items()}
 
             for path, config in self.config.items():
                 self.process_path(tree, path, config, filename, {})
@@ -204,10 +205,7 @@ class XmlDocToTabular:
         if self.ns_map:
             tag = re.sub(
                 r"^{([^}]+)}",
-                lambda m: [
-                    key for key in self.ns_map.keys() if self.ns_map[key] == m.group(1)
-                ][0]
-                + ":",
+                lambda m: f"{self.ns_map_reversed[m.group(1)]}:",
                 tree.tag,
             )
 
