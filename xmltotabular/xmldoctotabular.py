@@ -118,6 +118,11 @@ class XmlDocToTabular:
 
         try:
             tree = self.parse_tree(doc)
+
+            try:
+                tree = tree.getroot()
+            except AttributeError:
+                pass
             for path, config in self.config.items():
                 self.process_path(tree, path, config, filename, {})
 
@@ -186,10 +191,6 @@ class XmlDocToTabular:
     def process_path(
         self, tree, path, config, filename, record, parent_entity=None, parent_pk=None
     ):
-        try:
-            tree = tree.getroot()
-        except AttributeError:
-            pass
 
         if path == tree.tag:
             results = [tree]
