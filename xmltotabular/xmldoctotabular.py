@@ -55,6 +55,8 @@ class XmlDocToTabular:
 
     def get_pk(self, tree, config):
         def get_pk_component(expression):
+            if "_" in self.ns_map and ":" not in expression:
+                expression = f"_:{expression}"
             elems = tree.xpath(expression, namespaces=self.ns_map)
             assert (
                 len(elems) == 1
