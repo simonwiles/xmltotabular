@@ -209,13 +209,12 @@ class XmlDocToTabular:
 
         for result in results:
             self.process_field(
-                result, path, config, filename, record, parent_entity, parent_pk
+                result, config, filename, record, parent_entity, parent_pk
             )
 
     def process_field(
         self,
         result,
-        path,
         config,
         filename,
         record,
@@ -263,7 +262,6 @@ class XmlDocToTabular:
             for subconfig in config:
                 self.process_field(
                     result,
-                    path,
                     subconfig,
                     filename,
                     record,
