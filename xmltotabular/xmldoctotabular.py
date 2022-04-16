@@ -198,7 +198,7 @@ class XmlDocToTabular:
         self, tree, path, config, filename, record, parent_entity=None, parent_pk=None
     ):
 
-        if self.ns_map and ":" not in path:
+        if "_" in self.ns_map and ":" not in path:
             path = f"_:{path}"
 
         tag = tree.tag
