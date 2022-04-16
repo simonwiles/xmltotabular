@@ -55,7 +55,7 @@ class XmlDocToTabular:
 
     def get_pk(self, tree, config):
         def get_pk_component(expression):
-            elems = tree.xpath(expression)
+            elems = tree.xpath(expression, namespaces=self.ns_map)
             assert (
                 len(elems) == 1
             ), f"{len(elems)} elements found for <primary_key> component {expression}"
@@ -83,7 +83,6 @@ class XmlDocToTabular:
         return self.process_doc(**payload)
 
     def process_doc(self, doc, filename=None, linenum=None):
-
         if "xml_root" in self.config:
             try:
                 test_doctype(doc, self.config["xml_root"])
@@ -123,6 +122,12 @@ class XmlDocToTabular:
                 tree = tree.getroot()
             except AttributeError:
                 pass
+
+            if self.__dict__.get("ns_map", None) is None:
+                self.ns_map = {
+                    k if k is not None else "_": v for k, v in tree.nsmap.items()
+                }
+
             for path, config in self.config.items():
                 self.process_path(tree, path, config, filename, {})
 
@@ -192,10 +197,24 @@ class XmlDocToTabular:
         self, tree, path, config, filename, record, parent_entity=None, parent_pk=None
     ):
 
-        if path == tree.tag:
+        if self.ns_map and ":" not in path:
+            path = f"_:{path}"
+
+        tag = tree.tag
+        if self.ns_map:
+            tag = re.sub(
+                r"^{([^}]+)}",
+                lambda m: [
+                    key for key in self.ns_map.keys() if self.ns_map[key] == m.group(1)
+                ][0]
+                + ":",
+                tree.tag,
+            )
+
+        if path == tag:
             results = [tree]
         else:
-            results = tree.xpath(path)
+            results = tree.xpath(path, namespaces=self.ns_map)
             if len(results) > 1 and not any(
                 key in config
                 for key in ("<entity>", "<joiner>", "<enum_map>", "<enum_type>")
