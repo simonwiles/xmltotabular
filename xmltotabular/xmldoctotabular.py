@@ -95,13 +95,14 @@ class XmlDocToTabular:
         """
         return self.process_doc(**payload)
 
+    # flake8: noqa: C901
     def process_doc(self, doc, filename=None, linenum=None):
         if self.check_doctype:
             try:
                 test_doctype(doc, self.config["<root_element>"])
 
             except WrongDoctypeException as exc:
-                self.logger.debug(
+                self.logger.info(
                     "%s\n%s",
                     colored(
                         "Unexpected XML document"
@@ -112,20 +113,31 @@ class XmlDocToTabular:
                     ),
                     str(exc),
                 )
+
+                if not self.continue_on_error:
+                    raise
+
                 return self.tables
 
             except NoDoctypeException:
-                self.logger.debug(
-                    "%s\n%s",
+                self.logger.info(
+                    "%s\n",
                     colored(
                         "Document"
-                        + (f" ending at line {linenum}" if linenum else "")
+                        + (
+                            f" ending at line {linenum}"
+                            if linenum and linenum > -1
+                            else ""
+                        )
                         + (f" in file {filename}" if filename else "")
                         + " has no DOCTYPE:",
                         "yellow",
                     ),
-                    doc,
                 )
+
+                if not self.continue_on_error:
+                    raise
+
                 return self.tables
 
         try:
