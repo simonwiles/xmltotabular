@@ -53,10 +53,16 @@ class XmlDocToTabular:
             r"\s+", " ", etree.tostring(xpath_result, method="text", encoding="unicode")
         ).strip()
 
+    def resolve_namespaces_in_xpath(self, expression):
+
+        if "_" in self.ns_map and ":" not in expression:
+            expression = f"_:{expression}"
+
+        return expression
+
     def get_pk(self, tree, config):
         def get_pk_component(expression):
-            if "_" in self.ns_map and ":" not in expression:
-                expression = f"_:{expression}"
+            expression = self.resolve_namespaces_in_xpath(expression)
             elems = tree.xpath(expression, namespaces=self.ns_map)
             assert (
                 len(elems) == 1
@@ -199,10 +205,7 @@ class XmlDocToTabular:
     def process_path(
         self, tree, path, config, filename, record, parent_entity=None, parent_pk=None
     ):
-
-        if "_" in self.ns_map and ":" not in path:
-            path = f"_:{path}"
-
+        path = self.resolve_namespaces_in_xpath(path)
         tag = tree.tag
         if self.ns_map:
             tag = re.sub(
