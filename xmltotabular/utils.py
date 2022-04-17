@@ -63,11 +63,11 @@ class NoDoctypeException(Exception):
     """Used to indicate that an XML doc does not specify a DOCTYPE."""
 
 
-def test_doctype(doc, expected_doctype):
+def test_doctype(doc, root_element):
     """Test an XML document (passed as a string) for a DOCTYPE declaration that matches
-    `expected_doctype`."""
+    `root_element`."""
     for line in doc.split("\n"):
-        if line.startswith(f"<!DOCTYPE {expected_doctype}"):
+        if line.split()[:2] == ["<!DOCTYPE", root_element]:
             return True
         elif line.startswith("<!DOCTYPE "):
             raise WrongDoctypeException(line)
