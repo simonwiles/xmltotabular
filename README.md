@@ -56,7 +56,7 @@ With a working version of Python >= 3.6 and Pipenv:
 
   and to get a report on the data, use:
 
-  ```sg
+  ```sh
   $ pipenv run coverage report -m
   ```
 
