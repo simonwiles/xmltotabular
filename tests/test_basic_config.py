@@ -94,6 +94,49 @@ def test_composed_primary_key():
     }
 
 
+def test_namespaced_primary_key():
+
+    config = yaml.safe_load(
+        r"""
+        album:
+          <entity>: album
+          <primary_key>: "dc:title"
+          <fields>:
+            "dc:title": name
+            artist: artist
+            released: released
+            label: label
+            genre: genre
+        """
+    )
+
+    xml = """\
+<?xml version="1.0" encoding="UTF-8"?>
+<album xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <dc:title>Five Leaves Left</dc:title>
+  <artist>Nick Drake</artist>
+  <released>1969</released>
+  <label>Island</label>
+  <genre>Folk</genre>
+</album>
+    """
+
+    docTransformer = XmlDocToTabular(config)
+
+    assert docTransformer.process_doc(xml) == {
+        "album": [
+            {
+                "id": "Five Leaves Left",
+                "name": "Five Leaves Left",
+                "artist": "Nick Drake",
+                "released": "1969",
+                "label": "Island",
+                "genre": "Folk",
+            }
+        ]
+    }
+
+
 def test_filename_field():
     """Tests that the <filename_field> syntax is properly implemented."""
 
