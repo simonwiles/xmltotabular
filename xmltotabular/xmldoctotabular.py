@@ -94,9 +94,9 @@ class XmlDocToTabular:
         return self.process_doc(**payload)
 
     def process_doc(self, doc, filename=None, linenum=None):
-        if "xml_root" in self.config:
+        if "<root_element>" in self.config:
             try:
-                test_doctype(doc, self.config["xml_root"])
+                test_doctype(doc, self.config["<root_element>"])
 
             except WrongDoctypeException as exc:
                 self.logger.debug(

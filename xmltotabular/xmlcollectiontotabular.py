@@ -99,17 +99,17 @@ class XmlCollectionToTabular:
 
         self.fieldnames = get_fieldnames_from_config(self.config)
         if check_doctype:
-            self.set_root_config()
+            self.set_root_element()
 
-    def set_root_config(self):
-        if "xml_root" not in self.config:
-            self.config["xml_root"] = next(iter(self.config.keys()))
+    def set_root_element(self):
+        if "<root_element>" not in self.config:
+            self.config["<root_element>"] = next(iter(self.config.keys()))
             self.logger.warning(
                 colored(
-                    "<xml_root> not explicitly set in config -- assuming <%s/>",
+                    "<root_element> not explicitly set in config -- assuming <%s/>",
                     "yellow",
                 ),
-                self.config["xml_root"],
+                self.config["<root_element>"],
             )
 
     def init_sqlite_db(self, output_path, max_vars):
