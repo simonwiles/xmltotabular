@@ -55,8 +55,11 @@ class XmlDocToTabular:
 
     def resolve_namespaces_in_xpath(self, expression):
 
-        if "_" in self.ns_map and ":" not in expression:
-            expression = f"_:{expression}"
+        if "_" in self.ns_map:
+            expression = "/".join(
+                f"_:{_}" if ":" not in _ and _[0] not in "@[" else _
+                for _ in expression.split("/")
+            )
 
         return expression
 
