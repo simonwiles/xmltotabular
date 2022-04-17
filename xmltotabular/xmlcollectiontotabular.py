@@ -96,6 +96,7 @@ class XmlCollectionToTabular:
         self.validate = validate
         self.processes = processes
         self.continue_on_error = continue_on_error
+        self.check_doctype = check_doctype
 
         self.fieldnames = get_fieldnames_from_config(self.config)
         if check_doctype:
@@ -139,6 +140,7 @@ class XmlCollectionToTabular:
             preprocess_doc=self.preprocess_doc,
             validate=self.validate,
             continue_on_error=self.continue_on_error,
+            check_doctype=self.check_doctype,
         )
 
         for input_file in self.xml_files:

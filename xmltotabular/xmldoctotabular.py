@@ -25,6 +25,7 @@ class XmlDocToTabular:
         preprocess_doc=None,
         validate=False,
         continue_on_error=False,
+        check_doctype=False,
         log_level=None,
     ):
         if logger:
@@ -41,6 +42,7 @@ class XmlDocToTabular:
         self.preprocess_doc = preprocess_doc
         self.validate = validate
         self.continue_on_error = continue_on_error
+        self.check_doctype = check_doctype
         self.tables = defaultdict(list)
         # lambdas can't be pickled (without dill, at least)
         self.table_pk_idx = defaultdict(partial(defaultdict, int))
@@ -94,7 +96,7 @@ class XmlDocToTabular:
         return self.process_doc(**payload)
 
     def process_doc(self, doc, filename=None, linenum=None):
-        if "<root_element>" in self.config:
+        if self.check_doctype:
             try:
                 test_doctype(doc, self.config["<root_element>"])
 
