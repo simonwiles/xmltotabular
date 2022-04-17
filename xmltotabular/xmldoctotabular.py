@@ -95,50 +95,50 @@ class XmlDocToTabular:
         """
         return self.process_doc(**payload)
 
-    # flake8: noqa: C901
+    def do_doctype_check(self, doc, filename, linenum):
+        try:
+            test_doctype(doc, self.config["<root_element>"])
+            return True
+
+        except WrongDoctypeException as exc:
+            self.logger.info(
+                "%s\n%s",
+                colored(
+                    "Unexpected XML document"
+                    + (f" ending at line {linenum}" if linenum else "")
+                    + (f" in file {filename}" if filename else "")
+                    + ": ",
+                    "yellow",
+                ),
+                str(exc),
+            )
+
+            if not self.continue_on_error:
+                raise
+
+            return False
+
+        except NoDoctypeException:
+            self.logger.info(
+                "%s\n",
+                colored(
+                    "Document"
+                    + (f" ending at line {linenum}" if linenum and linenum > -1 else "")
+                    + (f" in file {filename}" if filename else "")
+                    + " has no DOCTYPE:",
+                    "yellow",
+                ),
+            )
+
+            if not self.continue_on_error:
+                raise
+
+            return False
+
     def process_doc(self, doc, filename=None, linenum=None):
-        if self.check_doctype:
-            try:
-                test_doctype(doc, self.config["<root_element>"])
-
-            except WrongDoctypeException as exc:
-                self.logger.info(
-                    "%s\n%s",
-                    colored(
-                        "Unexpected XML document"
-                        + (f" ending at line {linenum}" if linenum else "")
-                        + (f" in file {filename}" if filename else "")
-                        + ": ",
-                        "yellow",
-                    ),
-                    str(exc),
-                )
-
-                if not self.continue_on_error:
-                    raise
-
-                return self.tables
-
-            except NoDoctypeException:
-                self.logger.info(
-                    "%s\n",
-                    colored(
-                        "Document"
-                        + (
-                            f" ending at line {linenum}"
-                            if linenum and linenum > -1
-                            else ""
-                        )
-                        + (f" in file {filename}" if filename else "")
-                        + " has no DOCTYPE:",
-                        "yellow",
-                    ),
-                )
-
-                if not self.continue_on_error:
-                    raise
-
-                return self.tables
+        if self.check_doctype and not self.do_doctype_check(doc, filename, linenum):
+            # doctype check failed, but continue_on_error is True
+            return self.tables
 
         try:
             tree = self.parse_tree(doc)
