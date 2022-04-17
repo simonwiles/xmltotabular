@@ -143,6 +143,8 @@ class XmlDocToTabular:
                 self.ns_map_reversed = {v: k for k, v in self.ns_map.items()}
 
             for path, config in self.config.items():
+                if path == "<root_element>":
+                    continue
                 self.process_path(tree, path, config, filename, {})
 
         except LookupError as exc:
