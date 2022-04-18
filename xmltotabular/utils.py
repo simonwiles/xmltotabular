@@ -124,6 +124,16 @@ def yield_xml_doc(filepath):
         }
 
 
+def resolve_namespaces_in_xpath(expression, ns_map):
+    if "_" in ns_map:
+        expression = "/".join(
+            f"_:{_}" if ":" not in _ and _[0] not in "@[" else _
+            for _ in expression.split("/")
+        )
+
+    return expression
+
+
 def get_fieldnames_from_config(full_config):
     """Parse a config object and return a dictionary where keys are table names and
     values are lists of field names."""

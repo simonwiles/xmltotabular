@@ -13,6 +13,7 @@ from .utils import (
     test_doctype,
     WrongDoctypeException,
     NoDoctypeException,
+    resolve_namespaces_in_xpath,
 )
 
 
@@ -55,19 +56,9 @@ class XmlDocToTabular:
             r"\s+", " ", etree.tostring(xpath_result, method="text", encoding="unicode")
         ).strip()
 
-    def resolve_namespaces_in_xpath(self, expression):
-
-        if "_" in self.ns_map:
-            expression = "/".join(
-                f"_:{_}" if ":" not in _ and _[0] not in "@[" else _
-                for _ in expression.split("/")
-            )
-
-        return expression
-
     def get_pk(self, tree, config):
         def get_pk_component(expression):
-            expression = self.resolve_namespaces_in_xpath(expression)
+            expression = resolve_namespaces_in_xpath(expression, self.ns_map)
             elems = tree.xpath(expression, namespaces=self.ns_map)
             assert (
                 len(elems) == 1
@@ -224,7 +215,7 @@ class XmlDocToTabular:
     def process_path(
         self, tree, path, config, filename, record, parent_entity=None, parent_pk=None
     ):
-        path = self.resolve_namespaces_in_xpath(path)
+        path = resolve_namespaces_in_xpath(path, self.ns_map)
         tag = tree.tag
         if self.ns_map:
             tag = re.sub(
