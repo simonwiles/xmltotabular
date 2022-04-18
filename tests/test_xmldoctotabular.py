@@ -17,7 +17,7 @@ def test_single_simple_entity_per_doc(simple_config):
 
     docTransformer = XmlDocToTabular(simple_config)
 
-    assert docTransformer.process_doc(xml) == {
+    assert docTransformer.process_record(xml) == {
         "album": [
             {
                 "id": "None_0",
@@ -61,7 +61,7 @@ def test_multiple_simple_entities_per_doc(simple_config):
 
     docTransformer = XmlDocToTabular(simple_config)
 
-    assert docTransformer.process_doc(xml) == {
+    assert docTransformer.process_record(xml) == {
         "album": [
             {
                 "id": "None_0",
@@ -129,7 +129,7 @@ def test_attribute_style_xml():
 
     docTransformer = XmlDocToTabular(config)
 
-    assert docTransformer.process_doc(xml) == {
+    assert docTransformer.process_record(xml) == {
         "album": [
             {
                 "id": "None_0",
@@ -187,7 +187,7 @@ def test_default_namespace_resolution():
 
     docTransformer = XmlDocToTabular(config)
 
-    assert docTransformer.process_doc(xml) == {
+    assert docTransformer.process_record(xml) == {
         "album": [
             {
                 "id": "None_0",
@@ -229,7 +229,7 @@ def test_complex_namespace_resolution():
 
     docTransformer = XmlDocToTabular(config)
 
-    assert docTransformer.process_doc(xml) == {
+    assert docTransformer.process_record(xml) == {
         "album": [
             {
                 "id": "None_0",
@@ -271,7 +271,7 @@ def test_namespace_resolution_with_no_default():
 
     docTransformer = XmlDocToTabular(config)
 
-    assert docTransformer.process_doc(xml) == {
+    assert docTransformer.process_record(xml) == {
         "album": [
             {
                 "id": "None_0",

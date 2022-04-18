@@ -55,7 +55,7 @@ def test_concatenation_of_multiple_results():
 
     docTransformer = XmlDocToTabular(config)
 
-    assert docTransformer.process_doc(xml) == {
+    assert docTransformer.process_record(xml) == {
         "album": [
             {
                 "id": "None_0",

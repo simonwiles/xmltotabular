@@ -36,7 +36,7 @@ def test_simple_doctype_checking():
 
     docTransformer = XmlDocToTabular(config, check_doctype=True)
 
-    assert docTransformer.process_doc(xml) == {
+    assert docTransformer.process_record(xml) == {
         "album": [
             {
                 "id": "Five Leaves Left",
@@ -84,7 +84,7 @@ def test_doctype_checking_when_not_record_base():
 
     docTransformer = XmlDocToTabular(config, check_doctype=True)
 
-    assert docTransformer.process_doc(xml) == {
+    assert docTransformer.process_record(xml) == {
         "album": [
             {
                 "id": "Five Leaves Left",
@@ -131,7 +131,7 @@ def test_wrong_doctype():
 
     docTransformer = XmlDocToTabular(config, check_doctype=True)
     with pytest.raises(WrongDoctypeException):
-        docTransformer.process_doc(xml)
+        docTransformer.process_record(xml)
 
 
 def test_no_doctype():
@@ -166,7 +166,7 @@ def test_no_doctype():
 
     docTransformer = XmlDocToTabular(config, check_doctype=True)
     with pytest.raises(NoDoctypeException):
-        docTransformer.process_doc(xml)
+        docTransformer.process_record(xml)
 
 
 def test_wrong_doctype_ignored_when_continue_on_error():
@@ -201,7 +201,7 @@ def test_wrong_doctype_ignored_when_continue_on_error():
     """
 
     docTransformer = XmlDocToTabular(config, check_doctype=True, continue_on_error=True)
-    assert docTransformer.process_doc(xml) == {}
+    assert docTransformer.process_record(xml) == {}
 
 
 def test_no_doctype_not_raised_when_continue_on_error():
@@ -235,4 +235,4 @@ def test_no_doctype_not_raised_when_continue_on_error():
     """
 
     docTransformer = XmlDocToTabular(config, check_doctype=True, continue_on_error=True)
-    assert docTransformer.process_doc(xml) == {}
+    assert docTransformer.process_record(xml) == {}

@@ -34,7 +34,7 @@ def test_primary_key():
 
     docTransformer = XmlDocToTabular(config)
 
-    assert docTransformer.process_doc(xml) == {
+    assert docTransformer.process_record(xml) == {
         "album": [
             {
                 "id": "Five Leaves Left",
@@ -80,7 +80,7 @@ def test_composed_primary_key():
 
     docTransformer = XmlDocToTabular(config)
 
-    assert docTransformer.process_doc(xml) == {
+    assert docTransformer.process_record(xml) == {
         "album": [
             {
                 "id": "Five Leaves Left-Nick Drake-1969",
@@ -123,7 +123,7 @@ def test_namespaced_primary_key():
 
     docTransformer = XmlDocToTabular(config)
 
-    assert docTransformer.process_doc(xml) == {
+    assert docTransformer.process_record(xml) == {
         "album": [
             {
                 "id": "Five Leaves Left",
