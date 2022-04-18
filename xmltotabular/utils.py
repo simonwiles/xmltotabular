@@ -1,3 +1,4 @@
+import gzip
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -75,6 +76,16 @@ def test_doctype(doc, root_element):
     raise NoDoctypeException()
 
 
+def get_stream(filepath):
+    with open(filepath, "rb") as _fh:
+        two_bytes = _fh.read(2)
+
+    if two_bytes == b"\x1f\x8b":
+        return gzip.open(filepath, "rt", errors="replace")
+
+    return open(filepath, "r", errors="replace")
+
+
 def yield_xml_doc(filepath):
     """Given a path to a file containing one or more XML documents, for each document
     yield a dictionary containing a document, the filename, and the ending line number
@@ -82,7 +93,7 @@ def yield_xml_doc(filepath):
     filename = filepath.resolve().name
     xml_doc = []
 
-    with open(filepath, "r", errors="replace") as _fh:
+    with get_stream(filepath) as _fh:
         for i, line in enumerate(_fh):
             if xml_doc and line.startswith("<?xml "):
                 yield {
