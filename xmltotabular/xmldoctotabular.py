@@ -75,7 +75,7 @@ class XmlDocToTabular:
 
         return None
 
-    def process_doc_from_pool(self, payload):
+    def process_record_from_pool(self, payload):
         """Unpack a tuple returned by yield_xml_doc().
 
         This is necessary because multiprocessing.Pool.imap will only pass a single
@@ -84,7 +84,7 @@ class XmlDocToTabular:
         handle this (and is required by this library when using python 3.6 anyway) --
         there may be value in using this anyway.
         """
-        return self.process_doc(**payload)
+        return self.process_record(**payload)
 
     def do_doctype_check(self, doc, filename, linenum):
         try:
@@ -126,13 +126,13 @@ class XmlDocToTabular:
 
             return False
 
-    def process_doc(self, doc, filename=None, linenum=None):
-        if self.check_doctype and not self.do_doctype_check(doc, filename, linenum):
+    def process_record(self, record, filename=None, linenum=None):
+        if self.check_doctype and not self.do_doctype_check(record, filename, linenum):
             # doctype check failed, but continue_on_error is True
             return self.tables
 
         try:
-            tree = self.parse_tree(doc)
+            tree = self.parse_tree(record)
 
             try:
                 tree = tree.getroot()
@@ -161,18 +161,18 @@ class XmlDocToTabular:
                     "Unable to parse XML document"
                     + (f" ending at line {linenum}" if linenum else "")
                     + (f" in file {filename}" if filename else "")
-                    + " (enable debug logging to dump doc to console):",
+                    + " (enable debug logging to dump record to console):",
                     "red",
                 )
                 + colored(f"\n    {exc.msg}", "yellow")
             )
-            self.logger.debug(doc)
+            self.logger.debug(record)
 
             if not self.continue_on_error:
                 raise SystemExit() from None
 
         except AssertionError as exc:
-            pk = self.get_pk(self.parse_tree(doc), next(iter(self.config.values())))
+            pk = self.get_pk(self.parse_tree(record), next(iter(self.config.values())))
             self.logger.warning(
                 colored(
                     "Unable to parse document"
@@ -180,12 +180,12 @@ class XmlDocToTabular:
                     + (f" ending at line {linenum}" if linenum else "")
                     + (f" in file {filename}" if filename else "")
                     + " -- record has not been parsed"
-                    + " (enable debug logging to dump doc to console):",
+                    + " (enable debug logging to dump record to console):",
                     "red",
                 )
                 + colored(f"\n    {exc.msg}", "yellow")
             )
-            self.logger.debug(doc)
+            self.logger.debug(record)
 
             if not self.continue_on_error:
                 raise SystemExit() from None

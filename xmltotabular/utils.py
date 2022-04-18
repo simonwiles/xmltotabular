@@ -1,6 +1,7 @@
 import gzip
 import sys
 from collections import defaultdict
+from io import BytesIO
 from pathlib import Path
 from pprint import pformat
 
@@ -122,6 +123,39 @@ def yield_xml_doc(filepath):
             "linenum": i - len(xml_doc),
             "doc": "".join(xml_doc),
         }
+
+
+def yield_xml_record(filepath, record_tag):
+    for doc in yield_xml_doc(filepath):
+        ns_record_tag = None
+
+        context = etree.iterparse(BytesIO(doc["doc"].encode("utf8")), events=("end",))
+
+        for _action, elem in context:
+            if ns_record_tag is None:
+                if elem.nsmap:
+                    if ":" in record_tag:
+                        ns, tag = record_tag.split(":")
+                        ns_record_tag = f"{{{elem.nsmap[ns]}}}{tag}"
+                    else:
+                        ns_record_tag = f"{{{elem.nsmap[None]}}}{record_tag}"
+                else:
+                    ns_record_tag = record_tag
+
+            if elem.tag == ns_record_tag:
+
+                record = etree.tostring(elem, encoding="unicode")
+
+                # free up memory by clearing the element and deleting previous elements
+                elem.clear()
+                while elem.getprevious() is not None:
+                    del elem.getparent()[0]
+
+                yield {
+                    "filename": doc["filename"],
+                    "linenum": doc["linenum"],
+                    "record": record,
+                }
 
 
 def resolve_namespaces_in_xpath(expression, ns_map):

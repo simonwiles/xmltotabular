@@ -12,8 +12,8 @@ from .utils import (
     colored,
     Pool,
     cpu_count,
-    yield_xml_doc,
     get_fieldnames_from_config,
+    yield_xml_record,
 )
 from .xmldoctotabular import XmlDocToTabular
 
@@ -59,6 +59,10 @@ class XmlCollectionToTabular:
         if isinstance(config, str) and Path(config).is_file():
             self.config = yaml.safe_load(open(config))
 
+        assert (
+            len([key for key in self.config if not key.startswith("<")]) == 1
+        ), "Only one root element allowed"
+
         self.output_type = output_type
         self.output_path = output_path
 
@@ -99,8 +103,7 @@ class XmlCollectionToTabular:
         self.check_doctype = check_doctype
 
         self.fieldnames = get_fieldnames_from_config(self.config)
-        if check_doctype:
-            self.set_root_element()
+        self.set_root_element()
 
     def set_root_element(self):
         if "<root_element>" not in self.config:
@@ -157,10 +160,12 @@ class XmlCollectionToTabular:
             pool = Pool(processes=processes)
 
             all_tables = defaultdict(list)
+
+            i = -1
             for i, tables in enumerate(
                 pool.imap(
-                    docParser.process_doc_from_pool,
-                    yield_xml_doc(input_file),
+                    docParser.process_record_from_pool,
+                    yield_xml_record(input_file, self.config["<root_element>"]),
                     chunksize,
                 )
             ):
